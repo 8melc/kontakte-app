@@ -1,7 +1,7 @@
 {
   "name": "Kontakte",
   "short_name": "Kontakte",
-  "start_url": "/",
+  "start_url": "/kontakte-app/",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#0f0f0f",

@@ -218,7 +218,7 @@ body {
       <div class="section-label">Überfällig</div>
       <div class="cards" id="overdueList"></div>
     </div>
-    <div class="hint">Daten lokal auf deinem Gerät.<br>Funktioniert offline.</div>
+    <div class="hint">Daten in Supabase gespeichert.<br>Synchronisiert über alle Geräte.</div>
   </div>
 
   <div id="tab-contacts" style="display:none">
@@ -280,13 +280,46 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
+const SUPABASE_URL = 'https://wlpfukxcbzfpylkbnmvf.supabase.co';
+const SUPABASE_KEY = 'DEIN_ANON_KEY_HIER';
+
 const today = new Date(); today.setHours(0,0,0,0);
-let contacts = JSON.parse(localStorage.getItem('mel_contacts') || '[]');
+let contacts = [];
 let selectedLevel = 'close';
 let currentFilter = 'all';
 let editingId = null;
 
-function save() { localStorage.setItem('mel_contacts', JSON.stringify(contacts)); }
+async function api(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    method: options.method || 'GET',
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+  if (!res.ok) { console.error('API error', res.status, await res.text()); return null; }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function fromDB(row) {
+  return { id: row.id, name: row.name, level: row.level, bday: row.bday, lastContact: row.last_contact, note: row.note };
+}
+
+function toDB(data) {
+  return { name: data.name, level: data.level, bday: data.bday || null, last_contact: data.lastContact || null, note: data.note || null };
+}
+
+async function loadContacts() {
+  const rows = await api('kontakte?select=*&order=created_at.desc');
+  if (rows) contacts = rows.map(fromDB);
+  renderDashboard(); renderAll();
+}
+
 function initials(name) { return name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 function daysSince(d) { if (!d) return 9999; return Math.floor((today - new Date(d)) / 86400000); }
 function daysUntilBday(d) {
@@ -413,17 +446,22 @@ function selectLevel(l) {
   ['close','mid','loose'].forEach(x=>{ document.getElementById('opt-'+x).className='level-opt'+(x===l?' sel-'+x:''); });
 }
 
-function saveContact() {
+async function saveContact() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) return;
   const data = { name, level: selectedLevel, bday: document.getElementById('f-bday').value, lastContact: document.getElementById('f-last').value, note: document.getElementById('f-note').value.trim() };
+  const dbData = toDB(data);
   if (editingId) {
-    const idx = contacts.findIndex(c=>c.id===editingId);
-    contacts[idx] = { ...contacts[idx], ...data };
+    const rows = await api(`kontakte?id=eq.${editingId}`, { method: 'PATCH', body: dbData });
+    if (rows && rows[0]) {
+      const idx = contacts.findIndex(c=>c.id===editingId);
+      contacts[idx] = fromDB(rows[0]);
+    }
   } else {
-    contacts.push({ id: Date.now(), ...data });
+    const rows = await api('kontakte', { method: 'POST', body: dbData });
+    if (rows && rows[0]) contacts.unshift(fromDB(rows[0]));
   }
-  save(); closeForm(); closeDetail(); renderDashboard(); renderAll();
+  closeForm(); closeDetail(); renderDashboard(); renderAll();
 }
 
 function openDetail(id) {
@@ -462,19 +500,24 @@ function openDetail(id) {
 
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
 
-function markContacted(id) {
-  const idx = contacts.findIndex(c=>c.id===id);
-  contacts[idx].lastContact = new Date().toISOString().split('T')[0];
-  save(); closeDetail(); renderDashboard(); renderAll();
+async function markContacted(id) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const rows = await api(`kontakte?id=eq.${id}`, { method: 'PATCH', body: { last_contact: todayStr } });
+  if (rows && rows[0]) {
+    const idx = contacts.findIndex(c=>c.id===id);
+    contacts[idx] = fromDB(rows[0]);
+  }
+  closeDetail(); renderDashboard(); renderAll();
 }
 
-function deleteContact(id) {
+async function deleteContact(id) {
   if (!confirm('Löschen?')) return;
+  await api(`kontakte?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
   contacts = contacts.filter(c=>c.id!==id);
-  save(); closeDetail(); renderDashboard(); renderAll();
+  closeDetail(); renderDashboard(); renderAll();
 }
 
-renderDashboard();
+loadContacts();
 </script>
 </body>
 </html>
