@@ -1,7 +1,7 @@
 const CACHE = 'kontakte-v1';
 const FILES = [
-  '/',
-  '/index.html',
+  '/kontakte-app/',
+  '/kontakte-app/index.html',
   'https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap'
 ];
 
