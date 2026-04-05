@@ -1,15 +1,21 @@
 {
-  "name": "Kontakte",
-  "short_name": "Kontakte",
+  "name": "Dran",
+  "short_name": "Dran",
   "start_url": "/kontakte-app/",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#0f0f0f",
-  "description": "Persönliches Kontakt-CRM",
+  "description": "Dein externes Gehirn für Beziehungen",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%230f0f0f' rx='40'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='%23f0ede8'>K</text></svg>",
-      "sizes": "192x192",
+      "src": "icon-arcs.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
       "type": "image/svg+xml"
     }
   ]
