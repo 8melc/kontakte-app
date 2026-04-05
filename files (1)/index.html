@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kontakte">
+<meta name="theme-color" content="#0f0f0f">
+<link rel="manifest" href="manifest.json">
+<title>Kontakte</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222222;
+  --border: #2a2a2a;
+  --border2: #333333;
+  --text: #f0ede8;
+  --text2: #888880;
+  --text3: #555550;
+  --red: #e05a4e;
+  --amber: #e0944e;
+  --green: #7ec87e;
+  --purple: #9b8fe0;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.app { max-width: 430px; margin: 0 auto; }
+.header {
+  padding: 56px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--bg); z-index: 10;
+}
+.header-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+.header-title { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+.header-sub { font-size: 13px; color: var(--text2); font-family: 'DM Mono', monospace; }
+.tabs { display: flex; gap: 4px; }
+.tab {
+  flex: 1; padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid transparent; background: transparent;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  color: var(--text2); cursor: pointer; text-align: center; transition: all 0.15s;
+}
+.tab.active { background: var(--surface); border-color: var(--border2); color: var(--text); font-weight: 500; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px 20px; }
+.stat { background: var(--surface); border-radius: var(--radius-sm); padding: 12px; border: 1px solid var(--border); }
+.stat-val { font-size: 24px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.section { padding: 0 20px; margin-bottom: 8px; }
+.section-label {
+  font-size: 10px; font-family: 'DM Mono', monospace;
+  color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 16px 0 8px;
+}
+.cards { display: flex; flex-direction: column; gap: 1px; }
+.card {
+  background: var(--surface); border-radius: 0;
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s;
+}
+.card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.card:only-child { border-radius: var(--radius); }
+.card:active { background: var(--surface2); }
+.card.urgent { border-left-color: var(--red); }
+.card.soon { border-left-color: var(--amber); }
+.card.ok { border-left-color: var(--green); }
+.avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0; font-family: 'DM Mono', monospace;
+}
+.av-close { background: #2a2540; color: var(--purple); }
+.av-mid { background: #1e2e20; color: var(--green); }
+.av-loose { background: #252520; color: var(--text2); }
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.card-meta { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-right { text-align: right; flex-shrink: 0; }
+.card-days { font-size: 12px; font-family: 'DM Mono', monospace; }
+.card-days.urgent { color: var(--red); }
+.card-days.soon { color: var(--amber); }
+.card-days.ok { color: var(--green); }
+.bday-tag {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block;
+  background: #2a2010; color: var(--amber); font-family: 'DM Mono', monospace;
+}
+.empty { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 13px; background: var(--surface); border-radius: var(--radius); }
+.add-btn {
+  width: 100%; margin: 12px 0; padding: 14px;
+  background: transparent; border: 1px dashed var(--border2);
+  border-radius: var(--radius); color: var(--text2); font-size: 14px;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.add-btn:active { background: var(--surface); }
+.filter-row { display: flex; gap: 6px; padding: 12px 20px 0; }
+.filter-btn {
+  padding: 5px 12px; border-radius: 99px;
+  border: 1px solid var(--border); background: transparent;
+  font-size: 12px; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.filter-btn.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+.overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg); z-index: 100; overflow-y: auto;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom)); display: none;
+}
+.overlay.open { display: block; }
+.overlay-inner { max-width: 430px; margin: 0 auto; padding: 56px 20px 20px; }
+.back-btn {
+  background: transparent; border: none; color: var(--text2);
+  font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 24px;
+  font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px;
+}
+.form-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 24px; }
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; display: block;
+}
+.form-input {
+  width: 100%; padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 15px; font-family: 'DM Sans', sans-serif; -webkit-appearance: none;
+}
+.form-input:focus { outline: none; border-color: var(--text3); }
+.form-input::placeholder { color: var(--text3); }
+.form-input[type="date"] { color-scheme: dark; }
+.level-select { display: flex; gap: 8px; }
+.level-opt {
+  flex: 1; padding: 10px 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: transparent;
+  font-size: 13px; color: var(--text2); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; text-align: center; transition: all 0.15s;
+}
+.level-opt.sel-close { background: #2a2540; border-color: var(--purple); color: var(--purple); }
+.level-opt.sel-mid { background: #1e2e20; border-color: var(--green); color: var(--green); }
+.level-opt.sel-loose { background: #252520; border-color: var(--border2); color: var(--text2); }
+.form-actions { display: flex; gap: 8px; margin-top: 24px; }
+.btn-primary {
+  flex: 1; padding: 14px; border-radius: var(--radius-sm);
+  border: none; background: var(--text); color: var(--bg);
+  font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.btn-secondary {
+  padding: 14px 20px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); font-size: 15px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.detail-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.detail-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600; font-family: 'DM Mono', monospace;
+}
+.detail-name { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+.detail-level { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.info-list { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px; }
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-key { color: var(--text2); }
+.info-val { font-weight: 500; font-family: 'DM Mono', monospace; font-size: 13px; }
+.action-list { display: flex; flex-direction: column; gap: 1px; }
+.action-btn {
+  width: 100%; padding: 14px 16px; text-align: left;
+  background: var(--surface); border: none; border-radius: 0;
+  color: var(--text); font-size: 14px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.action-btn:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.action-btn:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.action-btn:active { background: var(--surface2); }
+.action-btn.danger { color: var(--red); }
+.action-arrow { color: var(--text3); }
+.hint { font-size: 12px; color: var(--text3); text-align: center; padding: 20px; font-family: 'DM Mono', monospace; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-title" id="headerTitle">Übersicht</div>
+        <div class="header-sub" id="headerSub">—</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
+      <button class="tab" onclick="showTab('contacts')">Alle</button>
+    </div>
+  </div>
+
+  <div id="tab-dashboard">
+    <div class="stats" id="statsGrid"></div>
+    <div class="section">
+      <div class="section-label">Geburtstage bald</div>
+      <div class="cards" id="bdayList"></div>
+    </div>
+    <div class="section">
+      <div class="section-label">Überfällig</div>
+      <div class="cards" id="overdueList"></div>
+    </div>
+    <div class="hint">Daten lokal auf deinem Gerät.<br>Funktioniert offline.</div>
+  </div>
+
+  <div id="tab-contacts" style="display:none">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">Alle</button>
+      <button class="filter-btn" onclick="setFilter('close',this)">Eng</button>
+      <button class="filter-btn" onclick="setFilter('mid',this)">Mittel</button>
+      <button class="filter-btn" onclick="setFilter('loose',this)">Locker</button>
+    </div>
+    <div class="section">
+      <div class="section-label" style="padding-top:12px"></div>
+      <div class="cards" id="allList"></div>
+      <button class="add-btn" onclick="openForm()">+ Kontakt hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="formOverlay">
+  <div class="overlay-inner">
+    <button class="back-btn" onclick="closeForm()">← Zurück</button>
+    <div class="form-title" id="formTitle">Neuer Kontakt</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="f-name" placeholder="z.B. Lisa" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nähe</label>
+      <div class="level-select">
+        <button class="level-opt" id="opt-close" onclick="selectLevel('close')">Eng</button>
+        <button class="level-opt" id="opt-mid" onclick="selectLevel('mid')">Mittel</button>
+        <button class="level-opt" id="opt-loose" onclick="selectLevel('loose')">Locker</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Geburtstag (optional)</label>
+      <input class="form-input" id="f-bday" type="date" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Letzter Kontakt</label>
+      <input class="form-input" id="f-last" type="date" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notiz (optional)</label>
+      <input class="form-input" id="f-note" placeholder="z.B. ruft lieber an" autocomplete="off" />
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeForm()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveContact()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="detailOverlay">
+  <div class="overlay-inner" id="detailContent"></div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+const today = new Date(); today.setHours(0,0,0,0);
+let contacts = JSON.parse(localStorage.getItem('mel_contacts') || '[]');
+let selectedLevel = 'close';
+let currentFilter = 'all';
+let editingId = null;
+
+function save() { localStorage.setItem('mel_contacts', JSON.stringify(contacts)); }
+function initials(name) { return name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function daysSince(d) { if (!d) return 9999; return Math.floor((today - new Date(d)) / 86400000); }
+function daysUntilBday(d) {
+  if (!d) return null;
+  const b = new Date(d);
+  const n = new Date(today.getFullYear(), b.getMonth(), b.getDate());
+  if (n < today) n.setFullYear(today.getFullYear()+1);
+  return Math.floor((n - today) / 86400000);
+}
+function threshold(level) { return level==='close'?30:level==='mid'?60:120; }
+function urgency(c) {
+  const ds = daysSince(c.lastContact);
+  const t = threshold(c.level);
+  return ds > t ? 'urgent' : ds > t*0.75 ? 'soon' : 'ok';
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function fmtDays(ds) {
+  if (ds===9999) return 'noch nie';
+  if (ds===0) return 'heute';
+  if (ds===1) return 'gestern';
+  return ds+'d';
+}
+
+function renderCard(c, container) {
+  const urg = urgency(c);
+  const du = daysUntilBday(c.bday);
+  const ds = daysSince(c.lastContact);
+  const avClass = c.level==='close'?'av-close':c.level==='mid'?'av-mid':'av-loose';
+  const lvl = c.level==='close'?'eng':c.level==='mid'?'mittel':'locker';
+  const div = document.createElement('div');
+  div.className = 'card '+urg;
+  div.innerHTML = `
+    <div class="avatar ${avClass}">${initials(c.name)}</div>
+    <div class="card-info">
+      <div class="card-name">${c.name}</div>
+      <div class="card-meta">${lvl}${c.note?' · '+c.note:''}</div>
+    </div>
+    <div class="card-right">
+      <div class="card-days ${urg}">${fmtDays(ds)}</div>
+      ${du!==null&&du<=30?`<div class="bday-tag">🎂 ${du}d</div>`:''}
+    </div>
+  `;
+  div.onclick = () => openDetail(c.id);
+  container.appendChild(div);
+}
+
+function renderDashboard() {
+  const total = contacts.length;
+  const urgent = contacts.filter(c=>urgency(c)==='urgent').length;
+  const bdays = contacts.filter(c=>{ const d=daysUntilBday(c.bday); return d!==null&&d<=14; }).length;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat"><div class="stat-val">${total}</div><div class="stat-label">Kontakte</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--red)">${urgent}</div><div class="stat-label">Überfällig</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--amber)">${bdays}</div><div class="stat-label">Bald Geburtstag</div></div>
+  `;
+  const bdayList = document.getElementById('bdayList');
+  bdayList.innerHTML = '';
+  const bdaySoon = contacts.filter(c=>{ const d=daysUntilBday(c.bday); return d!==null&&d<=30; }).sort((a,b)=>daysUntilBday(a.bday)-daysUntilBday(b.bday));
+  if (!bdaySoon.length) bdayList.innerHTML = '<div class="empty">Keine in den nächsten 30 Tagen</div>';
+  else bdaySoon.forEach(c=>renderCard(c,bdayList));
+
+  const overdueList = document.getElementById('overdueList');
+  overdueList.innerHTML = '';
+  const overdue = contacts.filter(c=>urgency(c)==='urgent').sort((a,b)=>daysSince(b.lastContact)-daysSince(a.lastContact));
+  if (!overdue.length) overdueList.innerHTML = '<div class="empty">Alles ok</div>';
+  else overdue.forEach(c=>renderCard(c,overdueList));
+
+  const now = new Date();
+  document.getElementById('headerSub').textContent = now.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+}
+
+function renderAll() {
+  const list = document.getElementById('allList');
+  list.innerHTML = '';
+  let filtered = currentFilter==='all' ? contacts : contacts.filter(c=>c.level===currentFilter);
+  filtered.sort((a,b)=>daysSince(b.lastContact)-daysSince(a.lastContact));
+  if (!filtered.length) list.innerHTML = '<div class="empty">Noch keine Kontakte</div>';
+  else filtered.forEach(c=>renderCard(c,list));
+}
+
+function showTab(tab) {
+  document.getElementById('tab-dashboard').style.display = tab==='dashboard'?'':'none';
+  document.getElementById('tab-contacts').style.display = tab==='contacts'?'':'none';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='dashboard')||(i===1&&tab==='contacts')));
+  document.getElementById('headerTitle').textContent = tab==='dashboard'?'Übersicht':'Kontakte';
+  if (tab==='dashboard') renderDashboard();
+  else renderAll();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function openForm(id) {
+  editingId = id||null;
+  document.getElementById('formTitle').textContent = id ? 'Bearbeiten' : 'Neuer Kontakt';
+  if (id) {
+    const c = contacts.find(x=>x.id===id);
+    document.getElementById('f-name').value = c.name;
+    document.getElementById('f-bday').value = c.bday||'';
+    document.getElementById('f-last').value = c.lastContact||'';
+    document.getElementById('f-note').value = c.note||'';
+    selectLevel(c.level);
+  } else {
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-bday').value = '';
+    document.getElementById('f-last').value = new Date().toISOString().split('T')[0];
+    document.getElementById('f-note').value = '';
+    selectLevel('close');
+  }
+  document.getElementById('formOverlay').classList.add('open');
+}
+
+function closeForm() { document.getElementById('formOverlay').classList.remove('open'); }
+
+function selectLevel(l) {
+  selectedLevel = l;
+  ['close','mid','loose'].forEach(x=>{ document.getElementById('opt-'+x).className='level-opt'+(x===l?' sel-'+x:''); });
+}
+
+function saveContact() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) return;
+  const data = { name, level: selectedLevel, bday: document.getElementById('f-bday').value, lastContact: document.getElementById('f-last').value, note: document.getElementById('f-note').value.trim() };
+  if (editingId) {
+    const idx = contacts.findIndex(c=>c.id===editingId);
+    contacts[idx] = { ...contacts[idx], ...data };
+  } else {
+    contacts.push({ id: Date.now(), ...data });
+  }
+  save(); closeForm(); closeDetail(); renderDashboard(); renderAll();
+}
+
+function openDetail(id) {
+  const c = contacts.find(x=>x.id===id);
+  const urg = urgency(c);
+  const ds = daysSince(c.lastContact);
+  const du = daysUntilBday(c.bday);
+  const avClass = c.level==='close'?'av-close':c.level==='mid'?'av-mid':'av-loose';
+  const lvlLabel = c.level==='close'?'Enger Kontakt':c.level==='mid'?'Mittlerer Kontakt':'Locker bekannt';
+  const urgColor = urg==='urgent'?'var(--red)':urg==='soon'?'var(--amber)':'var(--green)';
+  const t = threshold(c.level);
+  document.getElementById('detailContent').innerHTML = `
+    <button class="back-btn" onclick="closeDetail()">← Zurück</button>
+    <div class="detail-hero">
+      <div class="detail-avatar ${avClass}">${initials(c.name)}</div>
+      <div>
+        <div class="detail-name">${c.name}</div>
+        <div class="detail-level">${lvlLabel}</div>
+      </div>
+    </div>
+    <div class="info-list">
+      <div class="info-row"><span class="info-key">Letzter Kontakt</span><span class="info-val">${fmtDate(c.lastContact)}</span></div>
+      <div class="info-row"><span class="info-key">Vor</span><span class="info-val" style="color:${urgColor}">${fmtDays(ds)}</span></div>
+      <div class="info-row"><span class="info-key">Ziel</span><span class="info-val">alle ${t} Tage</span></div>
+      <div class="info-row"><span class="info-key">Geburtstag</span><span class="info-val">${c.bday?fmtDate(c.bday)+(du!==null?' (in '+du+'d)':''):'—'}</span></div>
+      ${c.note?`<div class="info-row"><span class="info-key">Notiz</span><span class="info-val" style="font-family:'DM Sans',sans-serif">${c.note}</span></div>`:''}
+    </div>
+    <div class="action-list">
+      <button class="action-btn" onclick="markContacted(${c.id})"><span>Heute gemeldet</span><span class="action-arrow">→</span></button>
+      <button class="action-btn" onclick="closeDetail();openForm(${c.id})"><span>Bearbeiten</span><span class="action-arrow">→</span></button>
+      <button class="action-btn danger" onclick="deleteContact(${c.id})"><span>Löschen</span><span class="action-arrow">→</span></button>
+    </div>
+  `;
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
+
+function markContacted(id) {
+  const idx = contacts.findIndex(c=>c.id===id);
+  contacts[idx].lastContact = new Date().toISOString().split('T')[0];
+  save(); closeDetail(); renderDashboard(); renderAll();
+}
+
+function deleteContact(id) {
+  if (!confirm('Löschen?')) return;
+  contacts = contacts.filter(c=>c.id!==id);
+  save(); closeDetail(); renderDashboard(); renderAll();
+}
+
+renderDashboard();
+</script>
+</body>
+</html>
