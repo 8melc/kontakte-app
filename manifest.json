@@ -1,6 +1,6 @@
 {
-  "name": "Dran",
-  "short_name": "Dran",
+  "name": "InTouch",
+  "short_name": "InTouch",
   "start_url": "/kontakte-app/",
   "display": "standalone",
   "background_color": "#0f0f0f",
