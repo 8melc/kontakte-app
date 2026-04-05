@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Kontakte">
 <meta name="theme-color" content="#0f0f0f">
 <link rel="manifest" href="manifest.json">
 <title>Kontakte</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0f0f0f;
@@ -23,52 +23,151 @@
   --red: #e05a4e;
   --amber: #e0944e;
   --green: #7ec87e;
-  --purple: #9b8fe0;
   --radius: 12px;
   --radius-sm: 8px;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: -webkit-fill-available; }
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--sans);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   min-height: -webkit-fill-available;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+input, textarea, button, select { font-family: var(--sans); }
+
+/* App shell */
+.app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+}
+.app-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+/* Header */
+.header {
+  padding: 52px 20px 14px;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header-date {
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.app { max-width: 430px; margin: 0 auto; }
-.header {
-  padding: 56px 20px 16px;
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 0;
-  background: var(--bg); z-index: 10;
+.bottom-nav-inner {
+  max-width: 430px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  position: relative;
 }
-.header-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
-.header-title { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
-.header-sub { font-size: 13px; color: var(--text2); font-family: 'DM Mono', monospace; }
-.tabs { display: flex; gap: 4px; }
-.tab {
-  flex: 1; padding: 8px 12px; border-radius: var(--radius-sm);
-  border: 1px solid transparent; background: transparent;
-  font-size: 13px; font-family: 'DM Sans', sans-serif;
-  color: var(--text2); cursor: pointer; text-align: center; transition: all 0.15s;
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  height: 100%;
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.15s;
 }
-.tab.active { background: var(--surface); border-color: var(--border2); color: var(--text); font-weight: 500; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px 20px; }
-.stat { background: var(--surface); border-radius: var(--radius-sm); padding: 12px; border: 1px solid var(--border); }
-.stat-val { font-size: 24px; font-weight: 600; font-family: 'DM Mono', monospace; }
-.stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
-.section { padding: 0 20px; margin-bottom: 8px; }
+.nav-tab.active { color: var(--text); }
+.nav-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-bottom: 2px;
+}
+.nav-tab.active .nav-dot { background: var(--text); }
+
+/* Floating action button */
+.fab {
+  position: fixed;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  right: max(16px, calc((100vw - 430px)/2 + 16px));
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  z-index: 51;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+.fab:active { transform: scale(0.92); }
+
+/* Sections */
+.section { padding: 0 20px; margin-bottom: 12px; }
 .section-label {
-  font-size: 10px; font-family: 'DM Mono', monospace;
-  color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   padding: 16px 0 8px;
 }
+
+/* Cards */
 .cards { display: flex; flex-direction: column; gap: 1px; }
 .card {
-  background: var(--surface); border-radius: 0;
-  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
-  cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s;
+  background: var(--surface);
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
 }
 .card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
 .card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
@@ -77,447 +176,1657 @@ body {
 .card.urgent { border-left-color: var(--red); }
 .card.soon { border-left-color: var(--amber); }
 .card.ok { border-left-color: var(--green); }
+
 .avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 600; flex-shrink: 0; font-family: 'DM Mono', monospace;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  background: var(--surface2);
+  color: var(--text2);
 }
-.av-close { background: #2a2540; color: var(--purple); }
-.av-mid { background: #1e2e20; color: var(--green); }
-.av-loose { background: #252520; color: var(--text2); }
+.av-close { background: #1e1e2a; color: #8888cc; }
+.av-mid { background: #1e2a1e; color: var(--green); }
+.av-loose { background: #222220; color: var(--text3); }
 .card-info { flex: 1; min-width: 0; }
-.card-name { font-size: 15px; font-weight: 500; color: var(--text); }
-.card-meta { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-name { font-size: 15px; font-weight: 500; }
+.card-meta {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--mono);
+}
 .card-right { text-align: right; flex-shrink: 0; }
-.card-days { font-size: 12px; font-family: 'DM Mono', monospace; }
+.card-days { font-size: 12px; font-family: var(--mono); }
 .card-days.urgent { color: var(--red); }
 .card-days.soon { color: var(--amber); }
 .card-days.ok { color: var(--green); }
-.bday-tag {
-  font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block;
-  background: #2a2010; color: var(--amber); font-family: 'DM Mono', monospace;
+.card-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+.empty-block {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+  background: var(--surface);
+  border-radius: var(--radius);
 }
-.empty { padding: 24px 16px; text-align: center; color: var(--text3); font-size: 13px; background: var(--surface); border-radius: var(--radius); }
-.add-btn {
-  width: 100%; margin: 12px 0; padding: 14px;
-  background: transparent; border: 1px dashed var(--border2);
-  border-radius: var(--radius); color: var(--text2); font-size: 14px;
-  font-family: 'DM Sans', sans-serif; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+
+/* Day row in Heute view */
+.day-row { margin-bottom: 16px; }
+.day-header {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
-.add-btn:active { background: var(--surface); }
-.filter-row { display: flex; gap: 6px; padding: 12px 20px 0; }
+.day-header-date { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.day-today { color: var(--red); }
+
+/* Overdue banner */
+.overdue-banner {
+  background: var(--surface);
+  border: 1px solid #3a2020;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.overdue-title {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--red);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.overdue-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.overdue-person-name { font-size: 14px; font-weight: 500; flex: 1; }
+.overdue-person-days { font-size: 12px; font-family: var(--mono); color: var(--red); }
+
+/* Search bar */
+.search-bar {
+  padding: 8px 20px 4px;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-appearance: none;
+}
+.search-input:focus { outline: none; border-color: var(--border2); }
+.search-input::placeholder { color: var(--text3); }
+
+/* Filter row */
+.filter-row { display: flex; gap: 6px; padding: 8px 20px 0; }
 .filter-btn {
-  padding: 5px 12px; border-radius: 99px;
-  border: 1px solid var(--border); background: transparent;
-  font-size: 12px; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all 0.15s;
 }
 .filter-btn.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+/* Anlässe timeline */
+.anlass-month {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 16px 0 8px;
+}
+.anlass-card {
+  background: var(--surface);
+  padding: 13px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+.anlass-card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.anlass-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.anlass-card:only-child { border-radius: var(--radius); }
+.anlass-card:active { background: var(--surface2); }
+.anlass-date-col {
+  flex-shrink: 0;
+  width: 44px;
+  text-align: center;
+}
+.anlass-day { font-size: 20px; font-weight: 600; font-family: var(--mono); }
+.anlass-weekday { font-size: 10px; font-family: var(--mono); color: var(--text2); text-transform: uppercase; }
+.anlass-info { flex: 1; min-width: 0; }
+.anlass-title { font-size: 14px; font-weight: 500; }
+.anlass-people { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.anlass-actions-count { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 3px; }
+.anlass-typ {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  background: var(--surface2);
+  color: var(--text2);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Overlay */
 .overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--bg); z-index: 100; overflow-y: auto;
-  padding-bottom: calc(32px + env(safe-area-inset-bottom)); display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 100;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: none;
 }
 .overlay.open { display: block; }
-.overlay-inner { max-width: 430px; margin: 0 auto; padding: 56px 20px 20px; }
-.back-btn {
-  background: transparent; border: none; color: var(--text2);
-  font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 24px;
-  font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px;
+.overlay-inner {
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 52px 20px calc(32px + env(safe-area-inset-bottom));
 }
+
+/* Back button */
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  font-family: var(--sans);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Form elements */
 .form-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 24px; }
 .form-group { margin-bottom: 16px; }
 .form-label {
-  font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2);
-  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; display: block;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
 }
 .form-input {
-  width: 100%; padding: 12px 14px;
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius-sm); color: var(--text);
-  font-size: 15px; font-family: 'DM Sans', sans-serif; -webkit-appearance: none;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 15px;
+  -webkit-appearance: none;
 }
 .form-input:focus { outline: none; border-color: var(--text3); }
 .form-input::placeholder { color: var(--text3); }
 .form-input[type="date"] { color-scheme: dark; }
+textarea.form-input { resize: vertical; min-height: 80px; font-family: var(--sans); }
+select.form-input { color-scheme: dark; }
+
 .level-select { display: flex; gap: 8px; }
 .level-opt {
-  flex: 1; padding: 10px 8px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: transparent;
-  font-size: 13px; color: var(--text2); cursor: pointer;
-  font-family: 'DM Sans', sans-serif; text-align: center; transition: all 0.15s;
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
 }
-.level-opt.sel-close { background: #2a2540; border-color: var(--purple); color: var(--purple); }
-.level-opt.sel-mid { background: #1e2e20; border-color: var(--green); color: var(--green); }
-.level-opt.sel-loose { background: #252520; border-color: var(--border2); color: var(--text2); }
+.level-opt.sel-close { background: #1e1e2a; border-color: #8888cc; color: #8888cc; }
+.level-opt.sel-mid { background: #1e2a1e; border-color: var(--green); color: var(--green); }
+.level-opt.sel-loose { background: #222220; border-color: var(--border2); color: var(--text2); }
+
 .form-actions { display: flex; gap: 8px; margin-top: 24px; }
 .btn-primary {
-  flex: 1; padding: 14px; border-radius: var(--radius-sm);
-  border: none; background: var(--text); color: var(--bg);
-  font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
 }
+.btn-primary:active { opacity: 0.85; }
 .btn-secondary {
-  padding: 14px 20px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border2); background: transparent;
-  color: var(--text2); font-size: 15px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 15px;
+  cursor: pointer;
 }
-.detail-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.btn-danger {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #3a2020;
+  background: transparent;
+  color: var(--red);
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+/* Detail view */
+.detail-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
 .detail-avatar {
-  width: 56px; height: 56px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 600; font-family: 'DM Mono', monospace;
+  font-size: 17px; font-weight: 600; font-family: var(--mono);
 }
 .detail-name { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-.detail-level { font-size: 12px; color: var(--text2); margin-top: 3px; }
-.info-list { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px; }
+.detail-level { font-size: 12px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+
+.info-list {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
 .info-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
 }
 .info-row:last-child { border-bottom: none; }
 .info-key { color: var(--text2); }
-.info-val { font-weight: 500; font-family: 'DM Mono', monospace; font-size: 13px; }
-.action-list { display: flex; flex-direction: column; gap: 1px; }
+.info-val { font-weight: 500; font-family: var(--mono); font-size: 13px; text-align: right; max-width: 60%; }
+
+.action-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 16px; }
 .action-btn {
-  width: 100%; padding: 14px 16px; text-align: left;
-  background: var(--surface); border: none; border-radius: 0;
-  color: var(--text); font-size: 14px; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  display: flex; align-items: center; justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  background: var(--surface);
+  border: none;
+  border-radius: 0;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .action-btn:first-child { border-radius: var(--radius) var(--radius) 0 0; }
 .action-btn:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.action-btn:only-child { border-radius: var(--radius); }
 .action-btn:active { background: var(--surface2); }
 .action-btn.danger { color: var(--red); }
-.action-arrow { color: var(--text3); }
-.hint { font-size: 12px; color: var(--text3); text-align: center; padding: 20px; font-family: 'DM Mono', monospace; line-height: 1.6; }
+.action-arrow { color: var(--text3); font-family: var(--mono); }
+
+/* Quick entry modal */
+.quick-options { display: flex; flex-direction: column; gap: 1px; margin-bottom: 20px; }
+.quick-opt {
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  background: var(--surface);
+  border: none;
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.quick-opt:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.quick-opt:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.quick-opt:only-child { border-radius: var(--radius); }
+.quick-opt:active { background: var(--surface2); }
+.quick-opt-sub { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+/* Checkbox style for actions */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.check-row:active { background: var(--surface2); }
+.check-row:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.check-row:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+.check-row:only-child { border-radius: var(--radius); }
+.check-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--green);
+  transition: all 0.15s;
+}
+.check-box.checked { border-color: var(--green); background: #1e2a1e; }
+.check-text { flex: 1; font-size: 14px; }
+.check-text.checked { color: var(--text3); text-decoration: line-through; }
+.check-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+/* Person picker in forms */
+.person-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.person-chip {
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.person-chip.selected { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+
+/* Vorlauf input group */
+.vorlauf-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.vorlauf-row:last-child { border-bottom: none; }
+.vorlauf-name { flex: 1; font-size: 14px; }
+.vorlauf-input {
+  width: 60px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--mono);
+  text-align: center;
+  -webkit-appearance: none;
+}
+.vorlauf-suffix { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+
+/* Settings number input */
+.settings-num {
+  width: 52px;
+  padding: 6px 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--mono);
+  text-align: center;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+.settings-num:focus { outline: none; border-color: var(--text3); }
+.settings-num::-webkit-inner-spin-button,
+.settings-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 </head>
 <body>
+
 <div class="app">
   <div class="header">
-    <div class="header-top">
-      <div>
-        <div class="header-title" id="headerTitle">Übersicht</div>
-        <div class="header-sub" id="headerSub">—</div>
-      </div>
-    </div>
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
-      <button class="tab" onclick="showTab('contacts')">Alle</button>
-    </div>
+    <div class="header-title" id="headerTitle">Heute</div>
+    <div class="header-date" id="headerDate"></div>
   </div>
 
-  <div id="tab-dashboard">
-    <div class="stats" id="statsGrid"></div>
-    <div class="section">
-      <div class="section-label">Geburtstage bald</div>
-      <div class="cards" id="bdayList"></div>
-    </div>
-    <div class="section">
-      <div class="section-label">Überfällig</div>
-      <div class="cards" id="overdueList"></div>
-    </div>
-    <div class="hint">Daten in Supabase gespeichert.<br>Synchronisiert über alle Geräte.</div>
-  </div>
-
-  <div id="tab-contacts" style="display:none">
-    <div class="filter-row">
-      <button class="filter-btn active" onclick="setFilter('all',this)">Alle</button>
-      <button class="filter-btn" onclick="setFilter('close',this)">Eng</button>
-      <button class="filter-btn" onclick="setFilter('mid',this)">Mittel</button>
-      <button class="filter-btn" onclick="setFilter('loose',this)">Locker</button>
-    </div>
-    <div class="section">
-      <div class="section-label" style="padding-top:12px"></div>
-      <div class="cards" id="allList"></div>
-      <button class="add-btn" onclick="openForm()">+ Kontakt hinzufügen</button>
-    </div>
+  <div class="app-body" id="appBody">
+    <!-- Views rendered dynamically -->
   </div>
 </div>
 
-<div class="overlay" id="formOverlay">
-  <div class="overlay-inner">
-    <button class="back-btn" onclick="closeForm()">← Zurück</button>
-    <div class="form-title" id="formTitle">Neuer Kontakt</div>
-    <div class="form-group">
-      <label class="form-label">Name</label>
-      <input class="form-input" id="f-name" placeholder="z.B. Lisa" autocomplete="off" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nähe</label>
-      <div class="level-select">
-        <button class="level-opt" id="opt-close" onclick="selectLevel('close')">Eng</button>
-        <button class="level-opt" id="opt-mid" onclick="selectLevel('mid')">Mittel</button>
-        <button class="level-opt" id="opt-loose" onclick="selectLevel('loose')">Locker</button>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Geburtstag (optional)</label>
-      <input class="form-input" id="f-bday" type="date" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Letzter Kontakt</label>
-      <input class="form-input" id="f-last" type="date" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Notiz (optional)</label>
-      <input class="form-input" id="f-note" placeholder="z.B. ruft lieber an" autocomplete="off" />
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="closeForm()">Abbrechen</button>
-      <button class="btn-primary" onclick="saveContact()">Speichern</button>
-    </div>
+<!-- Bottom navigation -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-tab active" data-tab="heute" onclick="switchTab('heute')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 6h12"/><circle cx="8" cy="10" r="1" fill="currentColor"/></svg>
+      Heute
+    </button>
+    <button class="nav-tab" data-tab="personen" onclick="switchTab('personen')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>
+      Personen
+    </button>
+    <button class="nav-tab" data-tab="anlaesse" onclick="switchTab('anlaesse')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+      Anlässe
+    </button>
+    <button class="nav-tab" data-tab="settings" onclick="switchTab('settings')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/></svg>
+      Mehr
+    </button>
   </div>
 </div>
 
-<div class="overlay" id="detailOverlay">
-  <div class="overlay-inner" id="detailContent"></div>
-</div>
+<!-- FAB -->
+<button class="fab" id="fabBtn" onclick="openQuickEntry()"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4v14M4 11h14"/></svg></button>
+
+<!-- Overlays -->
+<div class="overlay" id="overlayDetail"></div>
+<div class="overlay" id="overlayForm"></div>
+<div class="overlay" id="overlayQuick"></div>
+<div class="overlay" id="overlayAnlassDetail"></div>
+<div class="overlay" id="overlayAnlassForm"></div>
+<div class="overlay" id="overlayAktionForm"></div>
+<div class="overlay" id="overlayNoteForm"></div>
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 
-const SUPABASE_URL = 'https://wlpfukxcbzfpylkbnmvf.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndscGZ1a3hjYnpmcHlsa2JubXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzOTE1NTIsImV4cCI6MjA5MDk2NzU1Mn0.-rVLD46EF2ICihoOLa5a5zQsjV_lxbNWTSb4jNBeQDs';
+// ─── Config ───
+const SB_URL = 'https://wlpfukxcbzfpylkbnmvf.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndscGZ1a3hjYnpmcHlsa2JubXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzOTE1NTIsImV4cCI6MjA5MDk2NzU1Mn0.-rVLD46EF2ICihoOLa5a5zQsjV_lxbNWTSb4jNBeQDs';
 
-const today = new Date(); today.setHours(0,0,0,0);
-let contacts = [];
-let selectedLevel = 'close';
-let currentFilter = 'all';
-let editingId = null;
+// ─── Settings (persisted locally) ───
+const DEFAULT_SETTINGS = { freq_close: 30, freq_mid: 60, freq_loose: 120, bday_vorlauf: 3 };
+let settings = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('ros_settings') || '{}') };
+function saveSettings() { localStorage.setItem('ros_settings', JSON.stringify(settings)); }
 
-async function api(path, options = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+// ─── State ───
+let kontakte = [];
+let anlaesse = [];
+let aktionen = [];
+let currentTab = 'heute';
+let personFilter = 'all';
+let personSearch = '';
+
+// ─── API helper ───
+async function api(path, opts = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
     headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': options.prefer || 'return=representation',
-      ...options.headers
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
     },
-    method: options.method || 'GET',
-    body: options.body ? JSON.stringify(options.body) : undefined
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined
   });
-  if (!res.ok) { console.error('API error', res.status, await res.text()); return null; }
+  if (!res.ok) { console.error('API', res.status, await res.text()); return null; }
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
 
-function fromDB(row) {
-  return { id: row.id, name: row.name, level: row.level, bday: row.bday, lastContact: row.last_contact, note: row.note };
+// ─── Date helpers ───
+function todayDate() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
 }
 
-function toDB(data) {
-  return { name: data.name, level: data.level, bday: data.bday || null, last_contact: data.lastContact || null, note: data.note || null };
-}
-
-async function loadContacts() {
-  const rows = await api('kontakte?select=*&order=created_at.desc');
-  if (rows) contacts = rows.map(fromDB);
-  renderDashboard(); renderAll();
-}
-
-function initials(name) { return name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-function daysSince(d) { if (!d) return 9999; return Math.floor((today - new Date(d)) / 86400000); }
-function daysUntilBday(d) {
+function isoDate(d) {
   if (!d) return null;
-  const b = new Date(d);
-  const n = new Date(today.getFullYear(), b.getMonth(), b.getDate());
-  if (n < today) n.setFullYear(today.getFullYear()+1);
-  return Math.floor((n - today) / 86400000);
-}
-function threshold(level) { return level==='close'?30:level==='mid'?60:120; }
-function urgency(c) {
-  const ds = daysSince(c.lastContact);
-  const t = threshold(c.level);
-  return ds > t ? 'urgent' : ds > t*0.75 ? 'soon' : 'ok';
-}
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
-}
-function fmtDays(ds) {
-  if (ds===9999) return 'noch nie';
-  if (ds===0) return 'heute';
-  if (ds===1) return 'gestern';
-  return ds+'d';
+  if (typeof d === 'string') return d;
+  return d.toISOString().split('T')[0];
 }
 
-function renderCard(c, container) {
-  const urg = urgency(c);
-  const du = daysUntilBday(c.bday);
-  const ds = daysSince(c.lastContact);
-  const avClass = c.level==='close'?'av-close':c.level==='mid'?'av-mid':'av-loose';
-  const lvl = c.level==='close'?'eng':c.level==='mid'?'mittel':'locker';
-  const div = document.createElement('div');
-  div.className = 'card '+urg;
-  div.innerHTML = `
-    <div class="avatar ${avClass}">${initials(c.name)}</div>
-    <div class="card-info">
-      <div class="card-name">${c.name}</div>
-      <div class="card-meta">${lvl}${c.note?' · '+c.note:''}</div>
-    </div>
-    <div class="card-right">
-      <div class="card-days ${urg}">${fmtDays(ds)}</div>
-      ${du!==null&&du<=30?`<div class="bday-tag">🎂 ${du}d</div>`:''}
-    </div>
-  `;
-  div.onclick = () => openDetail(c.id);
-  container.appendChild(div);
+function todayISO() { return isoDate(todayDate()); }
+
+function parseDate(s) {
+  if (!s) return null;
+  const parts = s.split('-');
+  return new Date(+parts[0], +parts[1]-1, +parts[2]);
 }
 
-function renderDashboard() {
-  const total = contacts.length;
-  const urgent = contacts.filter(c=>urgency(c)==='urgent').length;
-  const bdays = contacts.filter(c=>{ const d=daysUntilBday(c.bday); return d!==null&&d<=14; }).length;
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat"><div class="stat-val">${total}</div><div class="stat-label">Kontakte</div></div>
-    <div class="stat"><div class="stat-val" style="color:var(--red)">${urgent}</div><div class="stat-label">Überfällig</div></div>
-    <div class="stat"><div class="stat-val" style="color:var(--amber)">${bdays}</div><div class="stat-label">Bald Geburtstag</div></div>
-  `;
-  const bdayList = document.getElementById('bdayList');
-  bdayList.innerHTML = '';
-  const bdaySoon = contacts.filter(c=>{ const d=daysUntilBday(c.bday); return d!==null&&d<=30; }).sort((a,b)=>daysUntilBday(a.bday)-daysUntilBday(b.bday));
-  if (!bdaySoon.length) bdayList.innerHTML = '<div class="empty">Keine in den nächsten 30 Tagen</div>';
-  else bdaySoon.forEach(c=>renderCard(c,bdayList));
-
-  const overdueList = document.getElementById('overdueList');
-  overdueList.innerHTML = '';
-  const overdue = contacts.filter(c=>urgency(c)==='urgent').sort((a,b)=>daysSince(b.lastContact)-daysSince(a.lastContact));
-  if (!overdue.length) overdueList.innerHTML = '<div class="empty">Alles ok</div>';
-  else overdue.forEach(c=>renderCard(c,overdueList));
-
-  const now = new Date();
-  document.getElementById('headerSub').textContent = now.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'});
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
 }
 
-function renderAll() {
-  const list = document.getElementById('allList');
-  list.innerHTML = '';
-  let filtered = currentFilter==='all' ? contacts : contacts.filter(c=>c.level===currentFilter);
-  filtered.sort((a,b)=>daysSince(b.lastContact)-daysSince(a.lastContact));
-  if (!filtered.length) list.innerHTML = '<div class="empty">Noch keine Kontakte</div>';
-  else filtered.forEach(c=>renderCard(c,list));
+function daysBetween(a, b) {
+  return Math.floor((b - a) / 86400000);
 }
 
-function showTab(tab) {
-  document.getElementById('tab-dashboard').style.display = tab==='dashboard'?'':'none';
-  document.getElementById('tab-contacts').style.display = tab==='contacts'?'':'none';
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='dashboard')||(i===1&&tab==='contacts')));
-  document.getElementById('headerTitle').textContent = tab==='dashboard'?'Übersicht':'Kontakte';
-  if (tab==='dashboard') renderDashboard();
-  else renderAll();
+function daysSince(dateStr) {
+  if (!dateStr) return 9999;
+  return daysBetween(parseDate(dateStr), todayDate());
 }
 
-function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderAll();
+function formatDateGerman(dateStr) {
+  if (!dateStr) return '--';
+  const d = parseDate(dateStr);
+  const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]}`;
 }
 
-function openForm(id) {
-  editingId = id||null;
-  document.getElementById('formTitle').textContent = id ? 'Bearbeiten' : 'Neuer Kontakt';
-  if (id) {
-    const c = contacts.find(x=>x.id===id);
-    document.getElementById('f-name').value = c.name;
-    document.getElementById('f-bday').value = c.bday||'';
-    document.getElementById('f-last').value = c.lastContact||'';
-    document.getElementById('f-note').value = c.note||'';
-    selectLevel(c.level);
-  } else {
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-bday').value = '';
-    document.getElementById('f-last').value = new Date().toISOString().split('T')[0];
-    document.getElementById('f-note').value = '';
-    selectLevel('close');
+function formatDateShort(dateStr) {
+  if (!dateStr) return '--';
+  const d = parseDate(dateStr);
+  return `${d.getDate()}. ${['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][d.getMonth()]}`;
+}
+
+function formatDaysAgo(n) {
+  if (n === 9999) return 'noch nie';
+  if (n === 0) return 'heute';
+  if (n === 1) return 'gestern';
+  return n + ' Tage';
+}
+
+function daysUntilBday(bdayStr) {
+  if (!bdayStr) return null;
+  const b = parseDate(bdayStr);
+  const t = todayDate();
+  const thisYear = new Date(t.getFullYear(), b.getMonth(), b.getDate());
+  if (thisYear < t) thisYear.setFullYear(t.getFullYear() + 1);
+  return daysBetween(t, thisYear);
+}
+
+// ─── Domain logic ───
+function threshold(level) {
+  return level === 'close' ? settings.freq_close : level === 'mid' ? settings.freq_mid : settings.freq_loose;
+}
+
+function urgency(k) {
+  const ds = daysSince(k.last_contact);
+  const t = threshold(k.level);
+  if (ds > t) return 'urgent';
+  if (ds > t * 0.75) return 'soon';
+  return 'ok';
+}
+
+function levelLabel(l) {
+  return l === 'close' ? 'eng' : l === 'mid' ? 'mittel' : 'locker';
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function avClass(level) {
+  return level === 'close' ? 'av-close' : level === 'mid' ? 'av-mid' : 'av-loose';
+}
+
+function urgClass(urg) {
+  return urg === 'urgent' ? 'urgent' : urg === 'soon' ? 'soon' : 'ok';
+}
+
+// ─── Data loading ───
+async function loadAll() {
+  const [k, a, ak] = await Promise.all([
+    api('kontakte?select=*&order=created_at.desc'),
+    api('anlaesse?select=*&order=datum.asc'),
+    api('aktionen?select=*&order=created_at.desc')
+  ]);
+  if (k) kontakte = k;
+  if (a) anlaesse = a;
+  if (ak) aktionen = ak;
+  render();
+}
+
+// ─── Tab switching ───
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  const titles = { heute: 'Heute', personen: 'Personen', anlaesse: 'Anlässe', settings: 'Einstellungen' };
+  document.getElementById('headerTitle').textContent = titles[tab];
+  document.getElementById('fabBtn').style.display = tab === 'settings' ? 'none' : '';
+  render();
+}
+
+// ─── Main render ───
+function render() {
+  const body = document.getElementById('appBody');
+  if (currentTab === 'heute') renderHeute(body);
+  else if (currentTab === 'personen') renderPersonen(body);
+  else if (currentTab === 'anlaesse') renderAnlaesse(body);
+  else if (currentTab === 'settings') renderSettings(body);
+  updateHeaderDate();
+}
+
+function updateHeaderDate() {
+  const t = todayDate();
+  document.getElementById('headerDate').textContent = formatDateGerman(isoDate(t));
+}
+
+// ─── HEUTE VIEW ───
+function renderHeute(container) {
+  let html = '';
+
+  // Overdue people (max 3)
+  const overdue = kontakte
+    .filter(k => urgency(k) === 'urgent')
+    .sort((a, b) => daysSince(b.last_contact) - daysSince(a.last_contact))
+    .slice(0, 3);
+
+  if (overdue.length) {
+    html += '<div class="section"><div class="overdue-banner"><div class="overdue-title">Zu lange nichts gehört</div>';
+    overdue.forEach(k => {
+      const ds = daysSince(k.last_contact);
+      html += `<div class="overdue-person" onclick="openPersonDetail(${k.id})">
+        <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+        <div class="overdue-person-name">${esc(k.name)}</div>
+        <div class="overdue-person-days">${formatDaysAgo(ds)}</div>
+      </div>`;
+    });
+    html += '</div></div>';
   }
-  document.getElementById('formOverlay').classList.add('open');
+
+  // Build 14-day timeline
+  const today = todayDate();
+  const todayStr = isoDate(today);
+  let hasAnyDay = false;
+
+  html += '<div class="section">';
+
+  for (let i = 0; i < 14; i++) {
+    const d = addDays(today, i);
+    const dStr = isoDate(d);
+    const items = [];
+
+    // Find anlaesse on this day
+    anlaesse.forEach(a => {
+      let matchDate = a.datum;
+      if (a.wiederkehrend || a.typ === 'geburtstag') {
+        const orig = parseDate(a.datum);
+        const thisYear = new Date(d.getFullYear(), orig.getMonth(), orig.getDate());
+        matchDate = isoDate(thisYear);
+      }
+      if (matchDate === dStr) {
+        items.push({ type: 'anlass', anlass: a });
+        // Find actions for this anlass that are due today based on vorlauf
+        // (Actions appear when anlass.datum - vorlauf_tage <= today)
+      }
+    });
+
+    // Find actions due on this day (vorlauf logic)
+    aktionen.forEach(ak => {
+      if (ak.erledigt) return;
+      const anlass = anlaesse.find(a => a.id === ak.anlass_id);
+      if (!anlass) return;
+
+      let anlassDatum = anlass.datum;
+      if (anlass.wiederkehrend || anlass.typ === 'geburtstag') {
+        const orig = parseDate(anlass.datum);
+        const thisYear = new Date(today.getFullYear(), orig.getMonth(), orig.getDate());
+        if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
+        anlassDatum = isoDate(thisYear);
+      }
+
+      const dueDate = addDays(parseDate(anlassDatum), -(ak.vorlauf_tage || 0));
+      if (isoDate(dueDate) === dStr) {
+        const kontakt = kontakte.find(k => k.id === ak.kontakt_id);
+        items.push({ type: 'aktion', aktion: ak, anlass, kontakt });
+      }
+    });
+
+    // Birthday check: auto-generate display for birthdays with default 3-day vorlauf
+    kontakte.forEach(k => {
+      if (!k.bday) return;
+      const b = parseDate(k.bday);
+      const bdayThisYear = new Date(d.getFullYear(), b.getMonth(), b.getDate());
+      if (isoDate(bdayThisYear) === dStr) {
+        // Check if there's already an anlass for this birthday
+        const hasAnlass = anlaesse.some(a => a.typ === 'geburtstag' && a.datum && (() => {
+          const orig = parseDate(a.datum);
+          return orig.getMonth() === b.getMonth() && orig.getDate() === b.getDate();
+        })());
+        if (!hasAnlass) {
+          items.push({ type: 'birthday', kontakt: k });
+        }
+      }
+      // Vorlauf before birthday (configurable)
+      const bdayDate = new Date(d.getFullYear(), b.getMonth(), b.getDate());
+      const vorlaufDate = addDays(bdayDate, -settings.bday_vorlauf);
+      if (isoDate(vorlaufDate) === dStr && isoDate(bdayDate) !== dStr) {
+        const hasAnlass = anlaesse.some(a => a.typ === 'geburtstag');
+        if (!hasAnlass) {
+          items.push({ type: 'bday-vorlauf', kontakt: k, daysUntil: settings.bday_vorlauf });
+        }
+      }
+    });
+
+    if (items.length === 0) continue;
+    hasAnyDay = true;
+
+    const isToday = i === 0;
+    const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const dayLabel = isToday ? 'Heute' : (i === 1 ? 'Morgen' : dayNames[d.getDay()] + ', ' + d.getDate() + '. ' + ['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][d.getMonth()]);
+
+    html += `<div class="day-row">`;
+    html += `<div class="day-header ${isToday ? 'day-today' : ''}"><span>${dayLabel}</span></div>`;
+    html += '<div class="cards">';
+
+    items.forEach(item => {
+      if (item.type === 'anlass') {
+        const a = item.anlass;
+        const people = aktionen.filter(ak => ak.anlass_id === a.id).map(ak => kontakte.find(k => k.id === ak.kontakt_id)).filter(Boolean);
+        html += `<div class="card ok" onclick="openAnlassDetail(${a.id})">
+          <div class="card-info">
+            <div class="card-name">${esc(a.titel)}</div>
+            <div class="card-meta">${people.map(p => esc(p.name)).join(', ') || a.typ}</div>
+          </div>
+          <div class="card-right"><div class="card-days ok">${a.typ}</div></div>
+        </div>`;
+      } else if (item.type === 'aktion') {
+        const k = item.kontakt;
+        const a = item.anlass;
+        html += `<div class="card soon" onclick="${k ? `openPersonDetail(${k.id})` : ''}">
+          <div class="avatar ${k ? avClass(k.level) : ''}">${k ? initials(k.name) : '--'}</div>
+          <div class="card-info">
+            <div class="card-name">${esc(item.aktion.was)}</div>
+            <div class="card-meta">${k ? esc(k.name) : ''} ${a ? '/ ' + esc(a.titel) : ''}</div>
+          </div>
+          <div class="card-right"><div class="card-days soon">Vorlauf</div></div>
+        </div>`;
+      } else if (item.type === 'birthday') {
+        const k = item.kontakt;
+        html += `<div class="card ok" onclick="openPersonDetail(${k.id})">
+          <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+          <div class="card-info">
+            <div class="card-name">${esc(k.name)}</div>
+            <div class="card-meta">Geburtstag</div>
+          </div>
+          <div class="card-right"><div class="card-days ok">heute</div></div>
+        </div>`;
+      } else if (item.type === 'bday-vorlauf') {
+        const k = item.kontakt;
+        html += `<div class="card soon" onclick="openPersonDetail(${k.id})">
+          <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+          <div class="card-info">
+            <div class="card-name">${esc(k.name)}</div>
+            <div class="card-meta">Geburtstag in ${item.daysUntil} Tagen</div>
+          </div>
+          <div class="card-right"><div class="card-days soon">Vorlauf</div></div>
+        </div>`;
+      }
+    });
+
+    html += '</div></div>';
+  }
+
+  if (!hasAnyDay && !overdue.length) {
+    html += '<div class="empty-block">Nichts in den nächsten 14 Tagen.</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
 }
 
-function closeForm() { document.getElementById('formOverlay').classList.remove('open'); }
+// ─── PERSONEN VIEW ───
+function renderPersonen(container) {
+  let html = '';
 
-function selectLevel(l) {
-  selectedLevel = l;
-  ['close','mid','loose'].forEach(x=>{ document.getElementById('opt-'+x).className='level-opt'+(x===l?' sel-'+x:''); });
+  // Search
+  html += `<div class="search-bar">
+    <input class="search-input" id="personSearchInput" placeholder="Suchen..." value="${esc(personSearch)}" oninput="onPersonSearch(this.value)">
+  </div>`;
+
+  // Filters
+  html += `<div class="filter-row">
+    <button class="filter-btn ${personFilter==='all'?'active':''}" onclick="setPersonFilter('all')">Alle</button>
+    <button class="filter-btn ${personFilter==='close'?'active':''}" onclick="setPersonFilter('close')">eng</button>
+    <button class="filter-btn ${personFilter==='mid'?'active':''}" onclick="setPersonFilter('mid')">mittel</button>
+    <button class="filter-btn ${personFilter==='loose'?'active':''}" onclick="setPersonFilter('loose')">locker</button>
+  </div>`;
+
+  // Filtered + searched list
+  let list = kontakte.slice();
+  if (personFilter !== 'all') list = list.filter(k => k.level === personFilter);
+  if (personSearch) {
+    const q = personSearch.toLowerCase();
+    list = list.filter(k => k.name.toLowerCase().includes(q));
+  }
+  list.sort((a, b) => daysSince(b.last_contact) - daysSince(a.last_contact));
+
+  html += '<div class="section"><div class="section-label">' + list.length + ' Personen</div>';
+
+  if (!list.length) {
+    html += '<div class="empty-block">Keine Personen gefunden</div>';
+  } else {
+    html += '<div class="cards">';
+    list.forEach(k => {
+      const urg = urgency(k);
+      const ds = daysSince(k.last_contact);
+      const nextAnlass = findNextAnlassForPerson(k.id);
+      html += `<div class="card ${urgClass(urg)}" onclick="openPersonDetail(${k.id})">
+        <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+        <div class="card-info">
+          <div class="card-name">${esc(k.name)}</div>
+          <div class="card-meta">${levelLabel(k.level)}${nextAnlass ? ' / ' + esc(nextAnlass) : ''}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-days ${urgClass(urg)}">${formatDaysAgo(ds)}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Focus search if it had focus
+  const si = document.getElementById('personSearchInput');
+  if (si && personSearch) { si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
 }
 
-async function saveContact() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) return;
-  const data = { name, level: selectedLevel, bday: document.getElementById('f-bday').value, lastContact: document.getElementById('f-last').value, note: document.getElementById('f-note').value.trim() };
-  const dbData = toDB(data);
-  if (editingId) {
-    const rows = await api(`kontakte?id=eq.${editingId}`, { method: 'PATCH', body: dbData });
-    if (rows && rows[0]) {
-      const idx = contacts.findIndex(c=>c.id===editingId);
-      contacts[idx] = fromDB(rows[0]);
+function findNextAnlassForPerson(kontaktId) {
+  const personAktionen = aktionen.filter(a => a.kontakt_id === kontaktId);
+  if (!personAktionen.length) return null;
+  const today = todayDate();
+  let closest = null;
+  let closestDays = Infinity;
+  personAktionen.forEach(ak => {
+    const anlass = anlaesse.find(a => a.id === ak.anlass_id);
+    if (!anlass) return;
+    let datum = anlass.datum;
+    if (anlass.wiederkehrend || anlass.typ === 'geburtstag') {
+      const orig = parseDate(datum);
+      const thisYear = new Date(today.getFullYear(), orig.getMonth(), orig.getDate());
+      if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
+      datum = isoDate(thisYear);
     }
-  } else {
-    const rows = await api('kontakte', { method: 'POST', body: dbData });
-    if (rows && rows[0]) contacts.unshift(fromDB(rows[0]));
-  }
-  closeForm(); closeDetail(); renderDashboard(); renderAll();
+    const days = daysBetween(today, parseDate(datum));
+    if (days >= 0 && days < closestDays) {
+      closestDays = days;
+      closest = anlass.titel + ' in ' + days + 'T';
+    }
+  });
+  return closest;
 }
 
-function openDetail(id) {
-  const c = contacts.find(x=>x.id===id);
-  const urg = urgency(c);
-  const ds = daysSince(c.lastContact);
-  const du = daysUntilBday(c.bday);
-  const avClass = c.level==='close'?'av-close':c.level==='mid'?'av-mid':'av-loose';
-  const lvlLabel = c.level==='close'?'Enger Kontakt':c.level==='mid'?'Mittlerer Kontakt':'Locker bekannt';
-  const urgColor = urg==='urgent'?'var(--red)':urg==='soon'?'var(--amber)':'var(--green)';
-  const t = threshold(c.level);
-  document.getElementById('detailContent').innerHTML = `
-    <button class="back-btn" onclick="closeDetail()">← Zurück</button>
+function onPersonSearch(val) {
+  personSearch = val;
+  // Rerender without scrolling to top
+  const body = document.getElementById('appBody');
+  renderPersonen(body);
+}
+
+function setPersonFilter(f) {
+  personFilter = f;
+  render();
+}
+
+// ─── ANLAESSE VIEW ───
+function renderAnlaesse(container) {
+  const today = todayDate();
+  const end = addDays(today, 90);
+
+  // Build list of anlaesse in next 90 days
+  const upcoming = [];
+  anlaesse.forEach(a => {
+    let datum;
+    if (a.wiederkehrend || a.typ === 'geburtstag') {
+      const orig = parseDate(a.datum);
+      datum = new Date(today.getFullYear(), orig.getMonth(), orig.getDate());
+      if (datum < today) datum = new Date(today.getFullYear() + 1, orig.getMonth(), orig.getDate());
+    } else {
+      datum = parseDate(a.datum);
+    }
+    if (datum >= today && datum <= end) {
+      upcoming.push({ ...a, _effectiveDate: datum, _effectiveDateStr: isoDate(datum) });
+    }
+  });
+
+  // Also add auto-birthdays from kontakte that don't have an explicit anlass
+  kontakte.forEach(k => {
+    if (!k.bday) return;
+    const b = parseDate(k.bday);
+    let bdayDate = new Date(today.getFullYear(), b.getMonth(), b.getDate());
+    if (bdayDate < today) bdayDate = new Date(today.getFullYear() + 1, b.getMonth(), b.getDate());
+    if (bdayDate > end) return;
+    // Check if already covered by an anlass
+    const covered = upcoming.some(u => u.typ === 'geburtstag' && u._effectiveDate.getTime() === bdayDate.getTime());
+    if (!covered) {
+      upcoming.push({
+        id: null,
+        titel: 'Geburtstag ' + k.name,
+        typ: 'geburtstag',
+        wiederkehrend: true,
+        _effectiveDate: bdayDate,
+        _effectiveDateStr: isoDate(bdayDate),
+        _autoKontakt: k
+      });
+    }
+  });
+
+  upcoming.sort((a, b) => a._effectiveDate - b._effectiveDate);
+
+  let html = '<div class="section">';
+
+  if (!upcoming.length) {
+    html += '<div class="section-label">Nächste 90 Tage</div>';
+    html += '<div class="empty-block">Keine Anlässe geplant</div>';
+  } else {
+    let currentMonth = '';
+    upcoming.forEach(a => {
+      const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+      const m = monthNames[a._effectiveDate.getMonth()] + ' ' + a._effectiveDate.getFullYear();
+      if (m !== currentMonth) {
+        if (currentMonth) html += '</div>'; // close cards
+        currentMonth = m;
+        html += `<div class="anlass-month">${m}</div><div class="cards">`;
+      }
+
+      const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      const relAktionen = a.id ? aktionen.filter(ak => ak.anlass_id === a.id) : [];
+      const openCount = relAktionen.filter(ak => !ak.erledigt).length;
+      const people = relAktionen.map(ak => kontakte.find(k => k.id === ak.kontakt_id)).filter(Boolean);
+      const peopleNames = a._autoKontakt ? esc(a._autoKontakt.name) : people.map(p => esc(p.name)).join(', ');
+
+      html += `<div class="anlass-card" onclick="${a.id ? `openAnlassDetail(${a.id})` : ''}">
+        <div class="anlass-date-col">
+          <div class="anlass-day">${a._effectiveDate.getDate()}</div>
+          <div class="anlass-weekday">${dayNames[a._effectiveDate.getDay()]}</div>
+        </div>
+        <div class="anlass-info">
+          <div class="anlass-title">${esc(a.titel)}</div>
+          ${peopleNames ? `<div class="anlass-people">${peopleNames}</div>` : ''}
+          ${openCount > 0 ? `<div class="anlass-actions-count">${openCount} offen</div>` : ''}
+        </div>
+        <div class="anlass-typ">${a.typ || ''}</div>
+      </div>`;
+    });
+    html += '</div>'; // close last cards group
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ─── PERSON DETAIL ───
+function openPersonDetail(id) {
+  const k = kontakte.find(x => x.id === id);
+  if (!k) return;
+  const urg = urgency(k);
+  const ds = daysSince(k.last_contact);
+  const t = threshold(k.level);
+  const urgColor = urg === 'urgent' ? 'var(--red)' : urg === 'soon' ? 'var(--amber)' : 'var(--green)';
+  const bday = daysUntilBday(k.bday);
+
+  // Occasions for this person
+  const personAktionen = aktionen.filter(a => a.kontakt_id === id);
+  const personAnlassIds = [...new Set(personAktionen.map(a => a.anlass_id))];
+  const personAnlaesse = personAnlassIds.map(aid => anlaesse.find(a => a.id === aid)).filter(Boolean);
+
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayDetail')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
     <div class="detail-hero">
-      <div class="detail-avatar ${avClass}">${initials(c.name)}</div>
+      <div class="detail-avatar ${avClass(k.level)}">${initials(k.name)}</div>
       <div>
-        <div class="detail-name">${c.name}</div>
-        <div class="detail-level">${lvlLabel}</div>
+        <div class="detail-name">${esc(k.name)}</div>
+        <div class="detail-level">${levelLabel(k.level)}</div>
       </div>
     </div>
-    <div class="info-list">
-      <div class="info-row"><span class="info-key">Letzter Kontakt</span><span class="info-val">${fmtDate(c.lastContact)}</span></div>
-      <div class="info-row"><span class="info-key">Vor</span><span class="info-val" style="color:${urgColor}">${fmtDays(ds)}</span></div>
-      <div class="info-row"><span class="info-key">Ziel</span><span class="info-val">alle ${t} Tage</span></div>
-      <div class="info-row"><span class="info-key">Geburtstag</span><span class="info-val">${c.bday?fmtDate(c.bday)+(du!==null?' (in '+du+'d)':''):'—'}</span></div>
-      ${c.note?`<div class="info-row"><span class="info-key">Notiz</span><span class="info-val" style="font-family:'DM Sans',sans-serif">${c.note}</span></div>`:''}
-    </div>
-    <div class="action-list">
-      <button class="action-btn" onclick="markContacted(${c.id})"><span>Heute gemeldet</span><span class="action-arrow">→</span></button>
-      <button class="action-btn" onclick="closeDetail();openForm(${c.id})"><span>Bearbeiten</span><span class="action-arrow">→</span></button>
-      <button class="action-btn danger" onclick="deleteContact(${c.id})"><span>Löschen</span><span class="action-arrow">→</span></button>
-    </div>
-  `;
-  document.getElementById('detailOverlay').classList.add('open');
-}
 
-function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
+    <div class="info-list">
+      <div class="info-row"><span class="info-key">Letzter Kontakt</span><span class="info-val">${k.last_contact ? formatDateShort(k.last_contact) : '--'}</span></div>
+      <div class="info-row"><span class="info-key">Vor</span><span class="info-val" style="color:${urgColor}">${formatDaysAgo(ds)}</span></div>
+      <div class="info-row"><span class="info-key">Ziel</span><span class="info-val">alle ${t} Tage</span></div>
+      <div class="info-row"><span class="info-key">Geburtstag</span><span class="info-val">${k.bday ? formatDateShort(k.bday) + (bday !== null ? ' (in ' + bday + 'T)' : '') : '--'}</span></div>
+      ${k.note ? `<div class="info-row"><span class="info-key">Notiz</span><span class="info-val" style="font-family:var(--sans);font-size:13px">${esc(k.note)}</span></div>` : ''}
+    </div>
+
+    <div class="section-label">Aktionen</div>
+    <div class="action-list">
+      <button class="action-btn" onclick="markContacted(${k.id})"><span>Heute gemeldet</span><span class="action-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span></button>
+      <button class="action-btn" onclick="markDranGedacht(${k.id})"><span>Dran gedacht</span><span class="action-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span></button>
+      <button class="action-btn" onclick="openNoteForm(${k.id})"><span>Notiz bearbeiten</span><span class="action-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span></button>
+      <button class="action-btn" onclick="closeOverlay('overlayDetail');openPersonForm(${k.id})"><span>Bearbeiten</span><span class="action-arrow"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12l4-4-4-4"/></svg></span></button>
+    </div>`;
+
+  // Occasions section
+  if (personAnlaesse.length) {
+    html += '<div class="section-label" style="margin-top:8px">Anlässe</div><div class="cards">';
+    personAnlaesse.forEach(a => {
+      html += `<div class="card ok" onclick="closeOverlay('overlayDetail');openAnlassDetail(${a.id})">
+        <div class="card-info">
+          <div class="card-name">${esc(a.titel)}</div>
+          <div class="card-meta">${formatDateShort(a.datum)} / ${a.typ}</div>
+        </div>
+        <div class="card-right"><div class="card-days ok">${a.wiederkehrend ? 'jährlich' : 'einmalig'}</div></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Open aktionen for this person
+  const openAk = personAktionen.filter(a => !a.erledigt);
+  if (openAk.length) {
+    html += '<div class="section-label" style="margin-top:8px">Offene Aufgaben</div><div class="cards">';
+    openAk.forEach(ak => {
+      const anlass = anlaesse.find(a => a.id === ak.anlass_id);
+      html += `<div class="check-row" onclick="toggleAktion(${ak.id}, ${k.id})">
+        <div class="check-box"></div>
+        <div class="check-text">${esc(ak.was)}</div>
+        <div class="check-meta">${anlass ? esc(anlass.titel) : ''}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<button class="btn-danger" onclick="deletePerson(${k.id})">Person löschen</button>`;
+  html += '</div>';
+
+  const overlay = document.getElementById('overlayDetail');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
 
 async function markContacted(id) {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const rows = await api(`kontakte?id=eq.${id}`, { method: 'PATCH', body: { last_contact: todayStr } });
+  const rows = await api(`kontakte?id=eq.${id}`, { method: 'PATCH', body: { last_contact: todayISO() } });
   if (rows && rows[0]) {
-    const idx = contacts.findIndex(c=>c.id===id);
-    contacts[idx] = fromDB(rows[0]);
+    const idx = kontakte.findIndex(k => k.id === id);
+    if (idx >= 0) kontakte[idx] = rows[0];
   }
-  closeDetail(); renderDashboard(); renderAll();
+  closeOverlay('overlayDetail');
+  render();
 }
 
-async function deleteContact(id) {
-  if (!confirm('Löschen?')) return;
+async function markDranGedacht(id) {
+  // Update last_contact to today
+  const rows = await api(`kontakte?id=eq.${id}`, { method: 'PATCH', body: { last_contact: todayISO() } });
+  if (rows && rows[0]) {
+    const idx = kontakte.findIndex(k => k.id === id);
+    if (idx >= 0) kontakte[idx] = rows[0];
+  }
+  closeOverlay('overlayDetail');
+  render();
+}
+
+async function deletePerson(id) {
+  if (!confirm('Person wirklich löschen?')) return;
+  // Delete related aktionen first
+  await api(`aktionen?kontakt_id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
   await api(`kontakte?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
-  contacts = contacts.filter(c=>c.id!==id);
-  closeDetail(); renderDashboard(); renderAll();
+  aktionen = aktionen.filter(a => a.kontakt_id !== id);
+  kontakte = kontakte.filter(k => k.id !== id);
+  closeOverlay('overlayDetail');
+  render();
 }
 
-loadContacts();
+async function toggleAktion(aktionId, personId) {
+  const ak = aktionen.find(a => a.id === aktionId);
+  if (!ak) return;
+  const rows = await api(`aktionen?id=eq.${aktionId}`, { method: 'PATCH', body: { erledigt: !ak.erledigt } });
+  if (rows && rows[0]) {
+    const idx = aktionen.findIndex(a => a.id === aktionId);
+    if (idx >= 0) aktionen[idx] = rows[0];
+  }
+  openPersonDetail(personId);
+  render();
+}
+
+// ─── PERSON FORM ───
+function openPersonForm(id) {
+  const k = id ? kontakte.find(x => x.id === id) : null;
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayForm')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">${k ? 'Bearbeiten' : 'Person eintragen'}</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="pf-name" value="${k ? esc(k.name) : ''}" placeholder="Name" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nähe</label>
+      <div class="level-select">
+        <button class="level-opt ${(!k || k.level==='close') ? 'sel-close' : ''}" onclick="pfSetLevel('close')" id="pf-lv-close">eng</button>
+        <button class="level-opt ${k && k.level==='mid' ? 'sel-mid' : ''}" onclick="pfSetLevel('mid')" id="pf-lv-mid">mittel</button>
+        <button class="level-opt ${k && k.level==='loose' ? 'sel-loose' : ''}" onclick="pfSetLevel('loose')" id="pf-lv-loose">locker</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Geburtstag (optional)</label>
+      <input class="form-input" id="pf-bday" type="date" value="${k && k.bday ? k.bday : ''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Letzter Kontakt</label>
+      <input class="form-input" id="pf-last" type="date" value="${k && k.last_contact ? k.last_contact : todayISO()}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notiz (optional)</label>
+      <textarea class="form-input" id="pf-note" placeholder="z.B. ruft lieber an">${k && k.note ? esc(k.note) : ''}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeOverlay('overlayForm')">Abbrechen</button>
+      <button class="btn-primary" onclick="savePerson(${id || 'null'})">Speichern</button>
+    </div>
+  </div>`;
+
+  const overlay = document.getElementById('overlayForm');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+  // Store selected level
+  overlay.dataset.level = k ? k.level : 'close';
+}
+
+function pfSetLevel(l) {
+  document.getElementById('overlayForm').dataset.level = l;
+  ['close','mid','loose'].forEach(x => {
+    const el = document.getElementById('pf-lv-' + x);
+    el.className = 'level-opt' + (x === l ? ' sel-' + x : '');
+  });
+}
+
+async function savePerson(id) {
+  const name = document.getElementById('pf-name').value.trim();
+  if (!name) return;
+  const level = document.getElementById('overlayForm').dataset.level || 'close';
+  const bday = document.getElementById('pf-bday').value || null;
+  const last_contact = document.getElementById('pf-last').value || null;
+  const note = document.getElementById('pf-note').value.trim() || null;
+
+  const body = { name, level, bday, last_contact, note };
+
+  if (id) {
+    const rows = await api(`kontakte?id=eq.${id}`, { method: 'PATCH', body });
+    if (rows && rows[0]) {
+      const idx = kontakte.findIndex(k => k.id === id);
+      if (idx >= 0) kontakte[idx] = rows[0];
+    }
+  } else {
+    const rows = await api('kontakte', { method: 'POST', body });
+    if (rows && rows[0]) kontakte.unshift(rows[0]);
+  }
+
+  closeOverlay('overlayForm');
+  render();
+}
+
+// ─── NOTE FORM ───
+function openNoteForm(personId) {
+  const k = kontakte.find(x => x.id === personId);
+  if (!k) return;
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayNoteForm')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">Notiz</div>
+    <div class="form-group">
+      <label class="form-label">${esc(k.name)}</label>
+      <textarea class="form-input" id="nf-note" rows="6" placeholder="Notiz...">${k.note ? esc(k.note) : ''}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeOverlay('overlayNoteForm')">Abbrechen</button>
+      <button class="btn-primary" onclick="saveNote(${personId})">Speichern</button>
+    </div>
+  </div>`;
+
+  const overlay = document.getElementById('overlayNoteForm');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function saveNote(personId) {
+  const note = document.getElementById('nf-note').value.trim() || null;
+  const rows = await api(`kontakte?id=eq.${personId}`, { method: 'PATCH', body: { note } });
+  if (rows && rows[0]) {
+    const idx = kontakte.findIndex(k => k.id === personId);
+    if (idx >= 0) kontakte[idx] = rows[0];
+  }
+  closeOverlay('overlayNoteForm');
+  closeOverlay('overlayDetail');
+  render();
+}
+
+// ─── ANLASS DETAIL ───
+function openAnlassDetail(id) {
+  const a = anlaesse.find(x => x.id === id);
+  if (!a) return;
+
+  const relAktionen = aktionen.filter(ak => ak.anlass_id === id);
+  const today = todayDate();
+  let effectiveDate = a.datum;
+  if (a.wiederkehrend || a.typ === 'geburtstag') {
+    const orig = parseDate(a.datum);
+    const thisYear = new Date(today.getFullYear(), orig.getMonth(), orig.getDate());
+    if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1);
+    effectiveDate = isoDate(thisYear);
+  }
+
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayAnlassDetail')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">${esc(a.titel)}</div>
+    <div class="info-list">
+      <div class="info-row"><span class="info-key">Datum</span><span class="info-val">${formatDateGerman(effectiveDate)}</span></div>
+      <div class="info-row"><span class="info-key">Typ</span><span class="info-val">${a.typ}</span></div>
+      <div class="info-row"><span class="info-key">Wiederkehrend</span><span class="info-val">${a.wiederkehrend ? 'ja' : 'nein'}</span></div>
+    </div>`;
+
+  // Related people & their actions
+  if (relAktionen.length) {
+    html += '<div class="section-label">Aufgaben</div><div class="cards">';
+    relAktionen.forEach(ak => {
+      const k = kontakte.find(x => x.id === ak.kontakt_id);
+      const checkedClass = ak.erledigt ? 'checked' : '';
+      html += `<div class="check-row" onclick="toggleAktionAnlass(${ak.id}, ${a.id})">
+        <div class="check-box ${checkedClass}">${ak.erledigt ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l3 3 5-5"/></svg>' : ''}</div>
+        <div class="check-text ${checkedClass}">${esc(ak.was)}</div>
+        <div class="check-meta">${k ? esc(k.name) : ''} / ${ak.vorlauf_tage || 0}T Vorlauf</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<div style="margin-top:16px">
+    <button class="btn-primary" onclick="openAktionForm(${a.id})" style="width:100%">Aufgabe hinzufügen</button>
+  </div>`;
+
+  html += `<div style="margin-top:8px;display:flex;gap:8px">
+    <button class="btn-secondary" style="flex:1" onclick="closeOverlay('overlayAnlassDetail');openAnlassForm(${a.id})">Bearbeiten</button>
+    <button class="btn-secondary" style="flex:1;color:var(--red);border-color:#3a2020" onclick="deleteAnlass(${a.id})">Löschen</button>
+  </div>`;
+
+  html += '</div>';
+
+  const overlay = document.getElementById('overlayAnlassDetail');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function toggleAktionAnlass(aktionId, anlassId) {
+  const ak = aktionen.find(a => a.id === aktionId);
+  if (!ak) return;
+  const rows = await api(`aktionen?id=eq.${aktionId}`, { method: 'PATCH', body: { erledigt: !ak.erledigt } });
+  if (rows && rows[0]) {
+    const idx = aktionen.findIndex(a => a.id === aktionId);
+    if (idx >= 0) aktionen[idx] = rows[0];
+  }
+  openAnlassDetail(anlassId);
+}
+
+async function deleteAnlass(id) {
+  if (!confirm('Anlass wirklich löschen?')) return;
+  await api(`aktionen?anlass_id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+  await api(`anlaesse?id=eq.${id}`, { method: 'DELETE', prefer: 'return=minimal' });
+  aktionen = aktionen.filter(a => a.anlass_id !== id);
+  anlaesse = anlaesse.filter(a => a.id !== id);
+  closeOverlay('overlayAnlassDetail');
+  render();
+}
+
+// ─── ANLASS FORM ───
+function openAnlassForm(id) {
+  const a = id ? anlaesse.find(x => x.id === id) : null;
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayAnlassForm')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">${a ? 'Anlass bearbeiten' : 'Neuer Anlass'}</div>
+    <div class="form-group">
+      <label class="form-label">Titel</label>
+      <input class="form-input" id="af-titel" value="${a ? esc(a.titel) : ''}" placeholder="z.B. Weihnachten" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Datum</label>
+      <input class="form-input" id="af-datum" type="date" value="${a ? a.datum : ''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Typ</label>
+      <select class="form-input" id="af-typ">
+        <option value="feiertag" ${a && a.typ==='feiertag'?'selected':''}>feiertag</option>
+        <option value="geburtstag" ${a && a.typ==='geburtstag'?'selected':''}>geburtstag</option>
+        <option value="einmalig" ${a && a.typ==='einmalig'?'selected':''}>einmalig</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wiederkehrend</label>
+      <div class="level-select">
+        <button class="level-opt ${(!a || a.wiederkehrend) ? 'sel-mid' : ''}" onclick="afSetWdk(true)" id="af-wdk-yes">ja</button>
+        <button class="level-opt ${a && !a.wiederkehrend ? 'sel-close' : ''}" onclick="afSetWdk(false)" id="af-wdk-no">nein</button>
+      </div>
+    </div>`;
+
+  // If creating new, show person picker + vorlauf inputs
+  if (!a) {
+    html += `<div class="form-group">
+      <label class="form-label">Personen zuordnen</label>
+      <div class="person-picker" id="af-people">`;
+    kontakte.forEach(k => {
+      html += `<button class="person-chip" data-kid="${k.id}" onclick="this.classList.toggle('selected')">${esc(k.name)}</button>`;
+    });
+    html += '</div></div>';
+    html += `<div class="form-group" id="af-vorlauf-group" style="display:none">
+      <label class="form-label">Vorlauf pro Person</label>
+      <div id="af-vorlauf-list"></div>
+    </div>`;
+    html += `<div class="form-group">
+      <label class="form-label">Was ist zu tun?</label>
+      <input class="form-input" id="af-was" placeholder="z.B. Geschenk besorgen" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Vorlauf (Tage)</label>
+      <input class="form-input" id="af-vorlauf" type="number" value="3" min="0" style="width:80px">
+    </div>`;
+  }
+
+  html += `<div class="form-actions">
+      <button class="btn-secondary" onclick="closeOverlay('overlayAnlassForm')">Abbrechen</button>
+      <button class="btn-primary" onclick="saveAnlass(${id || 'null'})">Speichern</button>
+    </div>
+  </div>`;
+
+  const overlay = document.getElementById('overlayAnlassForm');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+  overlay.dataset.wiederkehrend = a ? String(a.wiederkehrend) : 'true';
+}
+
+function afSetWdk(val) {
+  document.getElementById('overlayAnlassForm').dataset.wiederkehrend = String(val);
+  document.getElementById('af-wdk-yes').className = 'level-opt' + (val ? ' sel-mid' : '');
+  document.getElementById('af-wdk-no').className = 'level-opt' + (!val ? ' sel-close' : '');
+}
+
+async function saveAnlass(id) {
+  const titel = document.getElementById('af-titel').value.trim();
+  if (!titel) return;
+  const datum = document.getElementById('af-datum').value;
+  if (!datum) return;
+  const typ = document.getElementById('af-typ').value;
+  const wiederkehrend = document.getElementById('overlayAnlassForm').dataset.wiederkehrend === 'true';
+
+  const body = { titel, datum, typ, wiederkehrend };
+
+  if (id) {
+    const rows = await api(`anlaesse?id=eq.${id}`, { method: 'PATCH', body });
+    if (rows && rows[0]) {
+      const idx = anlaesse.findIndex(a => a.id === id);
+      if (idx >= 0) anlaesse[idx] = rows[0];
+    }
+  } else {
+    const rows = await api('anlaesse', { method: 'POST', body });
+    if (rows && rows[0]) {
+      anlaesse.push(rows[0]);
+
+      // Create actions for selected people
+      const newAnlassId = rows[0].id;
+      const wasInput = document.getElementById('af-was');
+      const vorlaufInput = document.getElementById('af-vorlauf');
+      const was = wasInput ? wasInput.value.trim() : '';
+      const vorlauf = vorlaufInput ? parseInt(vorlaufInput.value) || 0 : 0;
+
+      const selectedPeople = document.querySelectorAll('#af-people .person-chip.selected');
+      for (const chip of selectedPeople) {
+        const kid = parseInt(chip.dataset.kid);
+        const akBody = {
+          anlass_id: newAnlassId,
+          kontakt_id: kid,
+          was: was || titel,
+          vorlauf_tage: vorlauf,
+          erledigt: false
+        };
+        const akRows = await api('aktionen', { method: 'POST', body: akBody });
+        if (akRows && akRows[0]) aktionen.push(akRows[0]);
+      }
+    }
+  }
+
+  closeOverlay('overlayAnlassForm');
+  render();
+}
+
+// ─── AKTION FORM (add action to existing anlass) ───
+function openAktionForm(anlassId) {
+  const a = anlaesse.find(x => x.id === anlassId);
+  if (!a) return;
+
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayAktionForm')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">Aufgabe hinzufügen</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--mono)">${esc(a.titel)}</div>
+    <div class="form-group">
+      <label class="form-label">Person</label>
+      <select class="form-input" id="akf-person">
+        ${kontakte.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Was</label>
+      <input class="form-input" id="akf-was" placeholder="z.B. Karte schreiben" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Vorlauf (Tage)</label>
+      <input class="form-input" id="akf-vorlauf" type="number" value="3" min="0" style="width:80px">
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeOverlay('overlayAktionForm')">Abbrechen</button>
+      <button class="btn-primary" onclick="saveAktion(${anlassId})">Speichern</button>
+    </div>
+  </div>`;
+
+  const overlay = document.getElementById('overlayAktionForm');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function saveAktion(anlassId) {
+  const kontakt_id = parseInt(document.getElementById('akf-person').value);
+  const was = document.getElementById('akf-was').value.trim();
+  if (!was) return;
+  const vorlauf_tage = parseInt(document.getElementById('akf-vorlauf').value) || 0;
+
+  const body = { anlass_id: anlassId, kontakt_id, was, vorlauf_tage, erledigt: false };
+  const rows = await api('aktionen', { method: 'POST', body });
+  if (rows && rows[0]) aktionen.push(rows[0]);
+
+  closeOverlay('overlayAktionForm');
+  openAnlassDetail(anlassId);
+}
+
+// ─── QUICK ENTRY (Eintragen) ───
+function openQuickEntry() {
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayQuick')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">Eintragen</div>
+
+    <div class="quick-options">
+      <button class="quick-opt" onclick="closeOverlay('overlayQuick');quickGemeldet()">
+        <span>Heute gemeldet</span>
+        <span class="quick-opt-sub">Person wählen</span>
+      </button>
+      <button class="quick-opt" onclick="closeOverlay('overlayQuick');quickDranGedacht()">
+        <span>Dran gedacht</span>
+        <span class="quick-opt-sub">Person wählen</span>
+      </button>
+      <button class="quick-opt" onclick="closeOverlay('overlayQuick');openPersonForm(null)">
+        <span>Person eintragen</span>
+        <span class="quick-opt-sub">neue Person</span>
+      </button>
+      <button class="quick-opt" onclick="closeOverlay('overlayQuick');openAnlassForm(null)">
+        <span>Neuer Anlass</span>
+        <span class="quick-opt-sub">Anlass erstellen</span>
+      </button>
+    </div>
+  </div>`;
+
+  const overlay = document.getElementById('overlayQuick');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+function quickGemeldet() {
+  // Show person picker
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayQuick')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">Heute gemeldet</div>
+    <div class="section-label">Person wählen</div>
+    <div class="cards">`;
+
+  const sorted = kontakte.slice().sort((a, b) => daysSince(b.last_contact) - daysSince(a.last_contact));
+  sorted.forEach(k => {
+    const ds = daysSince(k.last_contact);
+    const urg = urgency(k);
+    html += `<div class="card ${urgClass(urg)}" onclick="doQuickGemeldet(${k.id})">
+      <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(k.name)}</div>
+        <div class="card-meta">${levelLabel(k.level)}</div>
+      </div>
+      <div class="card-right"><div class="card-days ${urgClass(urg)}">${formatDaysAgo(ds)}</div></div>
+    </div>`;
+  });
+
+  html += '</div></div>';
+  const overlay = document.getElementById('overlayQuick');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function doQuickGemeldet(id) {
+  await markContacted(id);
+  closeOverlay('overlayQuick');
+}
+
+function quickDranGedacht() {
+  let html = `<div class="overlay-inner">
+    <button class="back-btn" onclick="closeOverlay('overlayQuick')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg> Zurück</button>
+    <div class="form-title">Dran gedacht</div>
+    <div class="section-label">Person wählen</div>
+    <div class="cards">`;
+
+  const sorted = kontakte.slice().sort((a, b) => daysSince(b.last_contact) - daysSince(a.last_contact));
+  sorted.forEach(k => {
+    const ds = daysSince(k.last_contact);
+    const urg = urgency(k);
+    html += `<div class="card ${urgClass(urg)}" onclick="doQuickDranGedacht(${k.id})">
+      <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
+      <div class="card-info">
+        <div class="card-name">${esc(k.name)}</div>
+        <div class="card-meta">${levelLabel(k.level)}</div>
+      </div>
+      <div class="card-right"><div class="card-days ${urgClass(urg)}">${formatDaysAgo(ds)}</div></div>
+    </div>`;
+  });
+
+  html += '</div></div>';
+  const overlay = document.getElementById('overlayQuick');
+  overlay.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function doQuickDranGedacht(id) {
+  await markDranGedacht(id);
+  closeOverlay('overlayQuick');
+}
+
+// ─── SETTINGS VIEW ───
+function renderSettings(container) {
+  let html = '<div class="section">';
+
+  // Frequency settings
+  html += '<div class="section-label">Frequenz — wie oft melden</div>';
+  html += '<div class="info-list">';
+  html += `<div class="info-row">
+    <span class="info-key">eng</span>
+    <span class="info-val" style="display:flex;align-items:center;gap:6px">
+      alle <input type="number" class="settings-num" id="set-freq-close" value="${settings.freq_close}" min="1" max="365" onchange="updateSetting('freq_close', this.value)"> Tage
+    </span>
+  </div>`;
+  html += `<div class="info-row">
+    <span class="info-key">mittel</span>
+    <span class="info-val" style="display:flex;align-items:center;gap:6px">
+      alle <input type="number" class="settings-num" id="set-freq-mid" value="${settings.freq_mid}" min="1" max="365" onchange="updateSetting('freq_mid', this.value)"> Tage
+    </span>
+  </div>`;
+  html += `<div class="info-row">
+    <span class="info-key">locker</span>
+    <span class="info-val" style="display:flex;align-items:center;gap:6px">
+      alle <input type="number" class="settings-num" id="set-freq-loose" value="${settings.freq_loose}" min="1" max="365" onchange="updateSetting('freq_loose', this.value)"> Tage
+    </span>
+  </div>`;
+  html += '</div>';
+
+  // Birthday vorlauf
+  html += '<div class="section-label">Geburtstag — Standard-Vorlauf</div>';
+  html += '<div class="info-list">';
+  html += `<div class="info-row">
+    <span class="info-key">Vorlauf</span>
+    <span class="info-val" style="display:flex;align-items:center;gap:6px">
+      <input type="number" class="settings-num" id="set-bday-vorlauf" value="${settings.bday_vorlauf}" min="0" max="30" onchange="updateSetting('bday_vorlauf', this.value)"> Tage vorher
+    </span>
+  </div>`;
+  html += '</div>';
+
+  // Info text
+  html += `<div style="padding:20px 0;font-size:12px;color:var(--text3);font-family:var(--mono);line-height:1.7;text-align:center">
+    Frequenz bestimmt, ab wann eine Person<br>als "zu lange nichts gehört" gilt.<br><br>
+    eng = enge Freunde, Familie<br>
+    mittel = gute Bekannte<br>
+    locker = lose Kontakte<br><br>
+    Einstellungen werden lokal gespeichert.
+  </div>`;
+
+  // Reset button
+  html += `<button class="btn-secondary" style="width:100%;text-align:center" onclick="resetSettings()">Auf Standard zurücksetzen</button>`;
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function updateSetting(key, value) {
+  settings[key] = parseInt(value) || DEFAULT_SETTINGS[key];
+  saveSettings();
+}
+
+function resetSettings() {
+  settings = { ...DEFAULT_SETTINGS };
+  saveSettings();
+  render();
+}
+
+// ─── Utility ───
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ─── Init ───
+updateHeaderDate();
+loadAll();
 </script>
 </body>
 </html>
