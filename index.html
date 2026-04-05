@@ -668,7 +668,7 @@ const SB_URL = 'https://wlpfukxcbzfpylkbnmvf.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndscGZ1a3hjYnpmcHlsa2JubXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzOTE1NTIsImV4cCI6MjA5MDk2NzU1Mn0.-rVLD46EF2ICihoOLa5a5zQsjV_lxbNWTSb4jNBeQDs';
 
 // ─── Settings (persisted locally) ───
-const DEFAULT_SETTINGS = { freq_inner: 14, freq_close: 30, freq_mid: 60, freq_loose: 120, bday_vorlauf: 3 };
+const DEFAULT_SETTINGS = { freq_inner: 8, freq_close: 16, freq_mid: 45, freq_loose: 999, bday_vorlauf: 3 };
 let settings = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('ros_settings') || '{}') };
 function saveSettings() { localStorage.setItem('ros_settings', JSON.stringify(settings)); }
 
