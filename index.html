@@ -1794,6 +1794,7 @@ function openAnlassDetail(id) {
       <div class="info-row"><span class="info-key">Datum</span><span class="info-val">${formatDateGerman(effectiveDate)}</span></div>
       <div class="info-row"><span class="info-key">Typ</span><span class="info-val">${a.typ}</span></div>
       <div class="info-row"><span class="info-key">Wiederkehrend</span><span class="info-val">${a.wiederkehrend ? 'ja' : 'nein'}</span></div>
+      ${a.notiz ? `<div class="info-row" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="info-key">Notiz</span><span class="info-val" style="font-family:var(--sans);font-size:13px;max-width:100%;white-space:pre-wrap;line-height:1.5">${esc(a.notiz)}</span></div>` : ''}
     </div>`;
 
   if (relAktionen.length) {
@@ -1875,6 +1876,10 @@ function openAnlassForm(id) {
         <button class="level-opt ${(!a || a.wiederkehrend) ? 'sel-mid' : ''}" onclick="afSetWdk(true)" id="af-wdk-yes">ja</button>
         <button class="level-opt ${a && !a.wiederkehrend ? 'sel-close' : ''}" onclick="afSetWdk(false)" id="af-wdk-no">nein</button>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notiz (optional)</label>
+      <textarea class="form-input" id="af-notiz" rows="3" placeholder="z.B. Geschenkideen, Details...">${a && a.notiz ? esc(a.notiz) : ''}</textarea>
     </div>`;
 
   if (!a) {
@@ -1920,8 +1925,9 @@ async function saveAnlass(id) {
   if (!datum) return;
   const typ = document.getElementById('af-typ').value;
   const wiederkehrend = document.getElementById('overlayAnlassForm').dataset.wiederkehrend === 'true';
+  const notiz = document.getElementById('af-notiz').value.trim() || null;
 
-  const body = { titel, datum, typ, wiederkehrend };
+  const body = { titel, datum, typ, wiederkehrend, notiz };
 
   if (id) {
     const rows = await api(`anlaesse?id=eq.${id}`, { method: 'PATCH', body });
