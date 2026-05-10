@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { List, Row, Name, Meta, Dot } from '../components/List';
 import { Lbl } from '../components/Lbl';
 import { Tabs, TierPills } from '../components/Tabs';
@@ -8,6 +8,7 @@ import { Empty, SkeletonList } from '../components/Skeleton';
 import { useStore } from '../store/store';
 import { usePersistedState } from '../hooks/usePersistedState';
 import { useLongPress } from '../hooks/useLongPress';
+import { usePinchPan } from '../hooks/usePinchPan';
 import { haptic } from '../hooks/useHaptic';
 import { daysSince, formatDateShort, formatDaysAgo } from '../lib/date';
 import { LEVELS, levelLabel, levelLabelLong, urgency, URGENCY_ORDER } from '../lib/domain';
@@ -312,68 +313,234 @@ function PersonenTier({ search, openOverlay }: { search: string; openOverlay: (o
 function PersonenKarte({ search, openOverlay }: { search: string; openOverlay: (o: Overlay) => void }) {
   const kontakte = useStore(s => s.kontakte);
   const settings = useStore(s => s.settings);
+  const updatePerson = useStore(s => s.updatePerson);
+  const markContacted = useStore(s => s.markContacted);
+  const [filter, setFilter] = usePersistedState<Level | 'all'>('ros_karte_filter', 'all');
+  const [menu, setMenu] = useState<{ x: number; y: number; person: Kontakt } | null>(null);
+
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { scale, tx, ty, reset } = usePinchPan(canvasRef);
 
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return q ? kontakte.filter(k => k.name.toLowerCase().includes(q)) : kontakte;
-  }, [kontakte, search]);
+    return kontakte
+      .filter(k => filter === 'all' || k.level === filter)
+      .filter(k => !q || k.name.toLowerCase().includes(q));
+  }, [kontakte, search, filter]);
 
-  // pseudo-random but stable positions seeded by id
+  // Stable positions seeded by id, sized by level
   const positions = useMemo(() => {
     return list.map(k => {
       const seed = k.id || k.name.charCodeAt(0);
-      const x = 8 + ((seed * 9301 + 49297) % 84);
+      const x = 6 + ((seed * 9301 + 49297) % 80);
       const y = 4 + (((seed * 7) >> 1) % 80);
-      const sizeBase = k.level === 'inner' ? 60 : k.level === 'close' ? 48 : k.level === 'mid' ? 38 : 28;
+      // Bigger bubbles so full names fit
+      const sizeBase = k.level === 'inner' ? 76 : k.level === 'close' ? 64 : k.level === 'mid' ? 54 : 44;
       return { x, y, sz: sizeBase, k };
     });
   }, [list]);
 
+  const counts = LEVELS.reduce(
+    (acc, l) => {
+      acc[l] = kontakte.filter(k => k.level === l).length;
+      return acc;
+    },
+    { inner: 0, close: 0, mid: 0, loose: 0 } as Record<Level, number>
+  );
+
+  const filterItems: { key: Level | 'all'; label: string; count?: number }[] = [
+    { key: 'all', label: 'alle', count: kontakte.length },
+    { key: 'inner', label: 'inner', count: counts.inner },
+    { key: 'close', label: 'eng', count: counts.close },
+    { key: 'mid', label: 'mittel', count: counts.mid },
+    { key: 'loose', label: 'locker', count: counts.loose },
+  ];
+
+  const setLevel = async (k: Kontakt, level: Level) => {
+    if (k.level === level) return;
+    haptic('success');
+    await updatePerson(k.id, { level });
+    toast(`${k.name} → ${levelLabel(level)}`);
+  };
+
   return (
     <div className="fade-in">
-      <div className="scr-sub" style={{ marginBottom: 24 }}>
-        größe = nähe · rot = überfällig
+      <TierPills<Level | 'all'>
+        value={filter}
+        onChange={setFilter}
+        items={filterItems}
+      />
+      <div
+        className="scr-sub"
+        style={{
+          marginTop: 14,
+          marginBottom: 14,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+        }}
+      >
+        <span>größe = nähe · rot = überfällig</span>
+        {scale > 1.05 && (
+          <button
+            onClick={() => {
+              haptic('tap');
+              reset();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              color: 'var(--text-2)',
+              cursor: 'pointer',
+            }}
+          >
+            zurücksetzen
+          </button>
+        )}
+      </div>
+      <div className="scr-sub" style={{ marginBottom: 18, fontSize: 10 }}>
+        pinch zum zoomen · lang drücken zum verschieben
       </div>
       {list.length === 0 ? (
-        <Empty>niemand gefunden.</Empty>
+        <Empty>niemand in dieser kategorie.</Empty>
       ) : (
-        <div style={{ position: 'relative', height: 480 }}>
-          {positions.map(({ x, y, sz, k }) => {
-            const u = urgency(k, settings);
-            const isUrgent = u === 'urgent';
-            return (
-              <button
+        <div
+          ref={canvasRef}
+          style={{
+            position: 'relative',
+            height: 520,
+            overflow: 'hidden',
+            touchAction: 'none',
+            borderTop: '1px solid var(--hair)',
+            borderBottom: '1px solid var(--hair)',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+              transformOrigin: '50% 50%',
+              transition: 'transform 0s',
+            }}
+          >
+            {positions.map(({ x, y, sz, k }) => (
+              <Bubble
                 key={k.id}
-                onClick={() => {
+                k={k}
+                x={x}
+                y={y}
+                sz={sz}
+                settings={settings}
+                onTap={() => {
                   haptic('tap');
                   openOverlay({ kind: 'person-detail', id: k.id });
                 }}
-                style={{
-                  position: 'absolute',
-                  left: `${x}%`,
-                  top: `${y}%`,
-                  width: sz,
-                  height: sz,
-                  borderRadius: '50%',
-                  border: `1.5px solid ${isUrgent ? 'var(--red)' : 'var(--hair-strong)'}`,
-                  background: 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  padding: 0,
-                  color: isUrgent ? 'var(--red)' : 'var(--text-2)',
-                  fontFamily: 'var(--mono)',
-                  fontSize: Math.max(9, sz / 5),
-                }}
-              >
-                {k.name.split(' ')[0].slice(0, 4).toLowerCase()}
-              </button>
-            );
-          })}
+                onLong={(e) => setMenu({ x: e.clientX, y: e.clientY, person: k })}
+              />
+            ))}
+          </div>
         </div>
       )}
+      {menu && (
+        <LongPressMenu
+          x={menu.x}
+          y={menu.y}
+          onClose={() => setMenu(null)}
+          items={[
+            {
+              label: 'Heute gemeldet',
+              onClick: () => {
+                markContacted(menu.person.id);
+                toast(`gemeldet — ${menu.person.name}`);
+              },
+            },
+            ...(menu.person.level !== 'inner'
+              ? [{ label: '→ inner', onClick: () => setLevel(menu.person, 'inner') }]
+              : []),
+            ...(menu.person.level !== 'close'
+              ? [{ label: '→ eng', onClick: () => setLevel(menu.person, 'close') }]
+              : []),
+            ...(menu.person.level !== 'mid'
+              ? [{ label: '→ mittel', onClick: () => setLevel(menu.person, 'mid') }]
+              : []),
+            ...(menu.person.level !== 'loose'
+              ? [{ label: '→ locker', onClick: () => setLevel(menu.person, 'loose') }]
+              : []),
+            {
+              label: 'Details öffnen',
+              onClick: () => openOverlay({ kind: 'person-detail', id: menu.person.id }),
+            },
+          ]}
+        />
+      )}
     </div>
+  );
+}
+
+function Bubble({
+  k,
+  x,
+  y,
+  sz,
+  settings,
+  onTap,
+  onLong,
+}: {
+  k: Kontakt;
+  x: number;
+  y: number;
+  sz: number;
+  settings: Settings;
+  onTap: () => void;
+  onLong: (e: React.PointerEvent) => void;
+}) {
+  const u = urgency(k, settings);
+  const isUrgent = u === 'urgent';
+  const isSoon = u === 'soon';
+  const lp = useLongPress({
+    onLongPress: e => onLong(e as React.PointerEvent),
+    onClick: onTap,
+    ms: 380,
+  });
+  // first name only, lower-case for visual rhythm with mono font
+  const label = k.name.split(' ')[0].toLowerCase();
+  // shrink font for very long names
+  const fontSize = label.length > 8 ? 9 : label.length > 6 ? 10 : 11;
+
+  return (
+    <button
+      {...lp}
+      style={{
+        position: 'absolute',
+        left: `${x}%`,
+        top: `${y}%`,
+        width: sz,
+        height: sz,
+        borderRadius: '50%',
+        border: `1.5px solid ${
+          isUrgent ? 'var(--red)' : isSoon ? 'var(--amber)' : 'var(--hair-strong)'
+        }`,
+        background: 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        padding: 4,
+        color: isUrgent ? 'var(--red)' : isSoon ? 'var(--amber)' : 'var(--text-2)',
+        fontFamily: 'var(--mono)',
+        fontSize,
+        lineHeight: 1.1,
+        textAlign: 'center',
+        wordBreak: 'break-word',
+        overflow: 'hidden',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
