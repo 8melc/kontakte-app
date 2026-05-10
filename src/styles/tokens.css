@@ -1,0 +1,30 @@
+:root {
+  /* — Colors (warm, low chroma) — */
+  --bg: #14120f;
+  --bg-canvas: #0f0e0c;
+  --text: #f0ede8;
+  --text-2: rgba(240, 237, 232, 0.5);
+  --text-3: rgba(240, 237, 232, 0.28);
+
+  --hair: rgba(240, 237, 232, 0.07);
+  --hair-strong: rgba(240, 237, 232, 0.12);
+
+  --red: #c98577;
+  --amber: #c8a877;
+  --green: #95b095;
+  --gold: #b89a78;
+
+  /* — Spacing & rhythm — */
+  --pad: 24px;
+  --gap-md: 36px;
+  --gap-lg: 48px;
+  --row-pad: 14px;
+
+  /* — Type — */
+  --mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* — Misc — */
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-top: env(safe-area-inset-top);
+}
