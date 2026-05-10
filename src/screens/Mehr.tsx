@@ -11,7 +11,6 @@ interface Props {
 }
 
 export function Mehr({ openOverlay }: Props) {
-  void openOverlay;
   const settings = useStore(s => s.settings);
   const updateSettings = useStore(s => s.updateSettings);
   const resetSettings = useStore(s => s.resetSettings);
@@ -29,6 +28,22 @@ export function Mehr({ openOverlay }: Props) {
         <div className="scr-sub">einstellungen · features</div>
       </header>
       <div className="scr-body">
+        <Lbl>einsicht</Lbl>
+        <List>
+          <Row
+            className="tappable"
+            onClick={() => {
+              haptic('tap');
+              openOverlay({ kind: 'statistik' });
+            }}
+          >
+            <Name sub="streaks · trends · dein muster">Statistik</Name>
+            <Meta>›</Meta>
+          </Row>
+        </List>
+
+        <div className="gap" />
+
         <Lbl>kontaktrhythmus</Lbl>
         <List>
           <Row>

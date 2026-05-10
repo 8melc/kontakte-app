@@ -1,12 +1,23 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { todayISO } from '../lib/date';
-import { DEFAULT_SETTINGS, type Aktion, type Anlass, type Kontakt, type Settings } from '../types';
+import {
+  DEFAULT_SETTINGS,
+  type Aktion,
+  type Anlass,
+  type EventKind,
+  type EventSource,
+  type Kontakt,
+  type KontaktEvent,
+  type Settings,
+} from '../types';
 
 interface State {
   kontakte: Kontakt[];
   anlaesse: Anlass[];
   aktionen: Aktion[];
+  events: KontaktEvent[];
+  eventsTableMissing: boolean;
   loaded: boolean;
   loading: boolean;
   settings: Settings;
@@ -21,7 +32,8 @@ interface State {
   addPerson: (input: Omit<Kontakt, 'id' | 'created_at'>) => Promise<Kontakt | null>;
   updatePerson: (id: number, patch: Partial<Kontakt>) => Promise<void>;
   deletePerson: (id: number) => Promise<void>;
-  markContacted: (id: number) => Promise<void>;
+  markContacted: (id: number, opts?: { source?: EventSource; kind?: EventKind }) => Promise<void>;
+  logEvent: (kontakt_id: number, opts?: { source?: EventSource; kind?: EventKind }) => Promise<void>;
 
   // Anlass ops
   addAnlass: (input: Omit<Anlass, 'id' | 'created_at'>) => Promise<Anlass | null>;
@@ -56,24 +68,68 @@ export const useStore = create<State>((set, get) => ({
   kontakte: [],
   anlaesse: [],
   aktionen: [],
+  events: [],
+  eventsTableMissing: false,
   loaded: false,
   loading: false,
   settings: loadSettings(),
 
   async loadAll() {
     set({ loading: true });
-    const [k, a, ak] = await Promise.all([
+    const [k, a, ak, ev] = await Promise.all([
       supabase.from('kontakte').select('*').order('created_at', { ascending: false }),
       supabase.from('anlaesse').select('*').order('datum', { ascending: true }),
       supabase.from('aktionen').select('*').order('created_at', { ascending: false }),
+      supabase
+        .from('kontakt_events')
+        .select('*')
+        .order('ts', { ascending: false })
+        .limit(2000),
     ]);
     set({
       kontakte: (k.data ?? []) as Kontakt[],
       anlaesse: (a.data ?? []) as Anlass[],
       aktionen: (ak.data ?? []) as Aktion[],
+      events: (ev.data ?? []) as KontaktEvent[],
+      eventsTableMissing: !!ev.error,
       loaded: true,
       loading: false,
     });
+  },
+
+  async logEvent(kontakt_id, opts = {}) {
+    if (get().eventsTableMissing) return;
+    const optimistic: KontaktEvent = {
+      id: -Date.now(),
+      kontakt_id,
+      ts: new Date().toISOString(),
+      source: opts.source ?? 'manual',
+      kind: opts.kind ?? 'gemeldet',
+      created_at: new Date().toISOString(),
+    };
+    set(s => ({ events: [optimistic, ...s.events] }));
+    const { data, error } = await supabase
+      .from('kontakt_events')
+      .insert({
+        kontakt_id,
+        source: opts.source ?? 'manual',
+        kind: opts.kind ?? 'gemeldet',
+      })
+      .select()
+      .single();
+    if (error) {
+      set(s => ({ events: s.events.filter(e => e.id !== optimistic.id) }));
+      // If table doesn't exist (PGRST205), mark missing so we stop trying
+      if (error.code === 'PGRST205' || error.code === '42P01') {
+        set({ eventsTableMissing: true });
+      }
+      return;
+    }
+    if (data) {
+      set(s => ({
+        events: s.events.map(e => (e.id === optimistic.id ? (data as KontaktEvent) : e)),
+      }));
+    }
   },
 
   async refresh() {
@@ -143,8 +199,9 @@ export const useStore = create<State>((set, get) => ({
     }
   },
 
-  async markContacted(id) {
-    return get().updatePerson(id, { last_contact: todayISO() });
+  async markContacted(id, opts = {}) {
+    await get().updatePerson(id, { last_contact: todayISO() });
+    await get().logEvent(id, { source: opts.source ?? 'manual', kind: opts.kind ?? 'gemeldet' });
   },
 
   async addAnlass(input) {
