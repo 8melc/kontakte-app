@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PrimaryButton, GhostButton, BackButton } from '../components/Buttons';
 import { Lbl } from '../components/Lbl';
 import { useStore } from '../store/store';
+import { todayISO } from '../lib/date';
 import { toast } from '../lib/toast';
 import type { AnlassTyp } from '../types';
 
@@ -20,7 +21,7 @@ export function AnlassForm({ id, onClose }: Props) {
   const kontakte = useStore(s => s.kontakte);
 
   const [titel, setTitel] = useState(existing?.titel ?? '');
-  const [datum, setDatum] = useState(existing?.datum ?? '');
+  const [datum, setDatum] = useState(existing?.datum ?? todayISO());
   const [typ, setTyp] = useState<string>(existing?.typ ?? 'einmalig');
   const [wkd, setWkd] = useState<boolean>(existing?.wiederkehrend ?? false);
   const [notiz, setNotiz] = useState(existing?.notiz ?? '');

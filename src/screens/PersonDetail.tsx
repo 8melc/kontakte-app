@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { List, Row, Name, Meta } from '../components/List';
 import { Lbl } from '../components/Lbl';
 import { PrimaryButton, GhostButton, BackButton } from '../components/Buttons';
 import { Avatar } from '../components/Avatar';
+import { BottomSheet } from '../components/BottomSheet';
 import { useStore } from '../store/store';
 import { haptic } from '../hooks/useHaptic';
 import {
@@ -14,9 +15,11 @@ import {
   upcomingFromAnlass,
   daysBetween,
   todayDate,
+  todayISO,
 } from '../lib/date';
-import { levelLabelLong, threshold, urgency } from '../lib/domain';
+import { LEVELS, levelLabel, levelLabelLong, threshold, urgency } from '../lib/domain';
 import { toast } from '../lib/toast';
+import type { Level } from '../types';
 import type { Overlay } from '../App';
 
 interface Props {
@@ -25,16 +28,20 @@ interface Props {
   openOverlay: (o: Overlay) => void;
 }
 
+type FieldEdit = 'last_contact' | 'level' | 'bday' | null;
+
 export function PersonDetail({ id, onClose, openOverlay }: Props) {
   const k = useStore(s => s.kontakte.find(x => x.id === id));
   const aktionen = useStore(s => s.aktionen);
   const anlaesse = useStore(s => s.anlaesse);
   const settings = useStore(s => s.settings);
   const markContacted = useStore(s => s.markContacted);
+  const updatePerson = useStore(s => s.updatePerson);
   const deletePerson = useStore(s => s.deletePerson);
   const toggleAktion = useStore(s => s.toggleAktion);
 
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState<FieldEdit>(null);
 
   const personAktionen = useMemo(
     () => aktionen.filter(a => a.kontakt_id === id),
@@ -74,7 +81,7 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
   const openAk = personAktionen.filter(a => !a.erledigt);
 
-  // Verlauf — currently only "letzter Kontakt" event derived from k.last_contact + completed aktionen
+  // Verlauf
   const verlauf: { title: string; sub?: string; date: string }[] = [];
   if (k.last_contact) {
     verlauf.push({
@@ -89,6 +96,11 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
       const an = anlaesse.find(a => a.id === ak.anlass_id);
       verlauf.push({ title: ak.was, sub: an?.titel, date: '—' });
     });
+
+  const openEdit = (field: FieldEdit) => {
+    haptic('tap');
+    setEditing(field);
+  };
 
   return (
     <div className="full">
@@ -108,10 +120,11 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <Lbl>letzter kontakt</Lbl>
         <List>
-          <Row>
+          <Row className="tappable" onClick={() => openEdit('last_contact')}>
             <Name sub={k.last_contact ? formatDateGerman(k.last_contact) : 'noch nie'}>
               {k.last_contact ? formatDaysAgoLong(ds) : '—'}
             </Name>
+            <Meta>›</Meta>
           </Row>
         </List>
 
@@ -119,22 +132,25 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <Lbl>was du weißt</Lbl>
         <List>
-          <Row>
+          <Row className="tappable" onClick={() => openEdit('level')}>
             <Name>nähe</Name>
-            <Meta>{levelLabelLong(k.level)}</Meta>
+            <Meta>{levelLabelLong(k.level)} ›</Meta>
           </Row>
-          {k.bday && (
-            <Row>
-              <Name>geburtstag</Name>
-              <Meta>
-                {formatDateShort(k.bday)}
-                {bdayDays !== null ? ` · in ${bdayDays}T` : ''}
-              </Meta>
-            </Row>
-          )}
-          {k.note && (
-            <Row>
-              <Name>notiz</Name>
+          <Row className="tappable" onClick={() => openEdit('bday')}>
+            <Name>geburtstag</Name>
+            <Meta>
+              {k.bday
+                ? `${formatDateShort(k.bday)}${bdayDays !== null ? ` · in ${bdayDays}T` : ''}`
+                : '—'}{' '}
+              ›
+            </Meta>
+          </Row>
+          <Row
+            className="tappable"
+            onClick={() => openOverlay({ kind: 'note-form', personId: k.id })}
+          >
+            <Name>notiz</Name>
+            {k.note ? (
               <span
                 className="meta"
                 style={{
@@ -148,8 +164,10 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
               >
                 {k.note}
               </span>
-            </Row>
-          )}
+            ) : (
+              <Meta>— ›</Meta>
+            )}
+          </Row>
         </List>
 
         {personAnlaesse.length > 0 && (
@@ -277,6 +295,210 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
           </div>
         )}
       </div>
+
+      {/* ─── Inline-Edit Sheets ─── */}
+      <BottomSheet
+        open={editing === 'last_contact'}
+        onClose={() => setEditing(null)}
+        title="Letzter Kontakt"
+        subtitle="wann war's?"
+      >
+        <DateEditor
+          initial={k.last_contact}
+          onSave={async (val) => {
+            await updatePerson(k.id, { last_contact: val });
+            toast('gespeichert');
+            setEditing(null);
+          }}
+          onClear={async () => {
+            await updatePerson(k.id, { last_contact: null });
+            toast('zurückgesetzt');
+            setEditing(null);
+          }}
+        />
+      </BottomSheet>
+
+      <BottomSheet
+        open={editing === 'level'}
+        onClose={() => setEditing(null)}
+        title="Nähe"
+        subtitle="wie eng steht ihr euch?"
+      >
+        <LevelEditor
+          initial={k.level}
+          onSave={async (val) => {
+            await updatePerson(k.id, { level: val });
+            toast('gespeichert');
+            setEditing(null);
+          }}
+        />
+      </BottomSheet>
+
+      <BottomSheet
+        open={editing === 'bday'}
+        onClose={() => setEditing(null)}
+        title="Geburtstag"
+        subtitle="monat + tag genügen"
+      >
+        <DateEditor
+          initial={k.bday}
+          onSave={async (val) => {
+            await updatePerson(k.id, { bday: val });
+            toast('gespeichert');
+            setEditing(null);
+          }}
+          onClear={async () => {
+            await updatePerson(k.id, { bday: null });
+            toast('entfernt');
+            setEditing(null);
+          }}
+          allowToday={false}
+        />
+      </BottomSheet>
+    </div>
+  );
+}
+
+function DateEditor({
+  initial,
+  onSave,
+  onClear,
+  allowToday = true,
+}: {
+  initial: string | null;
+  onSave: (val: string) => Promise<void>;
+  onClear?: () => Promise<void>;
+  allowToday?: boolean;
+}) {
+  const [val, setVal] = useState(initial ?? '');
+
+  // Reset when initial changes (sheet reopened)
+  useEffect(() => {
+    setVal(initial ?? '');
+  }, [initial]);
+
+  return (
+    <div>
+      <input
+        className="input mono"
+        type="date"
+        autoFocus
+        value={val}
+        onChange={e => setVal(e.target.value)}
+      />
+      {allowToday && (
+        <div style={{ display: 'flex', gap: 14, marginTop: 14, fontFamily: 'var(--mono)', fontSize: 12 }}>
+          <button
+            onClick={() => setVal(todayISO())}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '4px 0',
+              color: val === todayISO() ? 'var(--text)' : 'var(--text-3)',
+              cursor: 'pointer',
+            }}
+          >
+            heute
+          </button>
+          <button
+            onClick={() => {
+              const d = new Date();
+              d.setDate(d.getDate() - 1);
+              const y = d.getFullYear();
+              const m = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              setVal(`${y}-${m}-${dd}`);
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '4px 0',
+              color: 'var(--text-3)',
+              cursor: 'pointer',
+            }}
+          >
+            gestern
+          </button>
+        </div>
+      )}
+      <div className="gap" />
+      <PrimaryButton
+        onClick={() => {
+          if (val) {
+            haptic('success');
+            onSave(val);
+          }
+        }}
+      >
+        Speichern
+      </PrimaryButton>
+      {onClear && initial && (
+        <button
+          className="btn-ghost"
+          style={{ color: 'var(--text-3)', textAlign: 'center' }}
+          onClick={() => {
+            haptic('soft');
+            onClear();
+          }}
+        >
+          zurücksetzen
+        </button>
+      )}
+    </div>
+  );
+}
+
+function LevelEditor({
+  initial,
+  onSave,
+}: {
+  initial: Level;
+  onSave: (val: Level) => Promise<void>;
+}) {
+  const [val, setVal] = useState<Level>(initial);
+
+  useEffect(() => {
+    setVal(initial);
+  }, [initial]);
+
+  return (
+    <div>
+      <List>
+        {LEVELS.map(l => (
+          <Row
+            key={l}
+            className="tappable"
+            onClick={() => {
+              haptic('tap');
+              setVal(l);
+            }}
+          >
+            <Name
+              sub={
+                l === 'inner'
+                  ? 'engste menschen'
+                  : l === 'close'
+                  ? 'enge freunde, familie'
+                  : l === 'mid'
+                  ? 'gute bekannte'
+                  : 'kein tracking'
+              }
+            >
+              {levelLabel(l)}
+            </Name>
+            <Meta>{val === l ? '✓' : ''}</Meta>
+          </Row>
+        ))}
+      </List>
+      <div className="gap" />
+      <PrimaryButton
+        onClick={() => {
+          haptic('success');
+          onSave(val);
+        }}
+      >
+        Speichern
+      </PrimaryButton>
     </div>
   );
 }

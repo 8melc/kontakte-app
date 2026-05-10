@@ -7,7 +7,12 @@ export function todayDate(): Date {
 export function isoDate(d: Date | string | null | undefined): string | null {
   if (!d) return null;
   if (typeof d === 'string') return d;
-  return d.toISOString().split('T')[0];
+  // Use LOCAL date components (not toISOString — that converts to UTC and
+  // can shift the date by a day for users east of UTC).
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function todayISO(): string {
