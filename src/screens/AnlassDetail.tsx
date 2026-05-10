@@ -40,7 +40,26 @@ export function AnlassDetail({ id, onClose, openOverlay }: Props) {
   return (
     <div className="full">
       <div className="full-inner">
-        <BackButton onClick={onClose} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button
+            onClick={() => {
+              haptic('soft');
+              setConfirming(true);
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 4,
+              cursor: 'pointer',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              color: 'var(--text-3)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            löschen
+          </button>
+        </div>
         <div className="scr-h1" style={{ marginBottom: 4 }}>
           {a.titel}
         </div>
@@ -128,16 +147,17 @@ export function AnlassDetail({ id, onClose, openOverlay }: Props) {
 
         <div className="gap" />
 
-        {!confirming ? (
-          <button
-            className="btn-ghost"
-            style={{ color: 'var(--red)', textAlign: 'center' }}
-            onClick={() => setConfirming(true)}
+        {confirming && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: '14px 0',
+              borderTop: '1px solid var(--hair)',
+              borderBottom: '1px solid var(--hair)',
+              marginBottom: 8,
+            }}
           >
-            Anlass löschen
-          </button>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, paddingTop: 14, borderTop: '1px solid var(--hair)' }}>
             <button
               className="btn-ghost"
               style={{ flex: 1, textAlign: 'center', borderTop: 'none' }}
@@ -149,6 +169,7 @@ export function AnlassDetail({ id, onClose, openOverlay }: Props) {
               className="btn-ghost"
               style={{ flex: 1, color: 'var(--red)', textAlign: 'center', borderTop: 'none' }}
               onClick={async () => {
+                haptic('warn');
                 await deleteAnlass(a.id);
                 toast('gelöscht');
                 onClose();
@@ -158,6 +179,17 @@ export function AnlassDetail({ id, onClose, openOverlay }: Props) {
             </button>
           </div>
         )}
+
+        <button
+          className="btn-ghost"
+          style={{ textAlign: 'center' }}
+          onClick={() => {
+            haptic('tap');
+            onClose();
+          }}
+        >
+          ‹ zurück
+        </button>
       </div>
     </div>
   );
