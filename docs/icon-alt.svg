@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="108" fill="#0f0f0f"/>
+
+  <!-- Subtle border -->
+  <rect x="4" y="4" width="504" height="504" rx="106" fill="none" stroke="#2a2a2a" stroke-width="2"/>
+
+  <!-- Letter D for "Dran" — geometric, DM Mono inspired -->
+  <text x="256" y="295" text-anchor="middle" dominant-baseline="central"
+        font-family="'DM Mono', 'SF Mono', monospace"
+        font-size="220" font-weight="400"
+        fill="#f0ede8" letter-spacing="-8">d.</text>
+
+  <!-- Small red accent line at top -->
+  <line x1="176" y1="136" x2="240" y2="136" stroke="#e05a4e" stroke-width="4" stroke-linecap="round"/>
+</svg>

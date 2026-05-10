@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/kontakte-app/',
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
     emptyOutDir: true,
     target: 'es2020',
   },
