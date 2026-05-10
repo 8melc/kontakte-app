@@ -926,7 +926,7 @@ function addDays(d, n) {
 }
 
 function daysBetween(a, b) {
-  return Math.floor((b - a) / 86400000);
+  return Math.round((b - a) / 86400000);
 }
 
 function daysSince(dateStr) {
@@ -1123,27 +1123,26 @@ function renderHeute(container) {
       }
     });
 
-    // Birthday check
+    // Birthday check — use upcoming bday relative to today, not d (handles year-boundary)
     kontakte.forEach(k => {
       if (!k.bday) return;
       const b = parseDate(k.bday);
-      const bdayThisYear = new Date(d.getFullYear(), b.getMonth(), b.getDate());
-      if (isoDate(bdayThisYear) === dStr) {
-        const hasAnlass = anlaesse.some(a => a.typ === 'geburtstag' && a.datum && (() => {
-          const orig = parseDate(a.datum);
-          return orig.getMonth() === b.getMonth() && orig.getDate() === b.getDate();
-        })());
-        if (!hasAnlass) {
-          items.push({ type: 'birthday', kontakt: k });
-        }
+      let upcomingBday = new Date(today.getFullYear(), b.getMonth(), b.getDate());
+      if (upcomingBday < today) upcomingBday.setFullYear(today.getFullYear() + 1);
+      const bdayStr = isoDate(upcomingBday);
+
+      const hasMatchingAnlass = anlaesse.some(a => a.typ === 'geburtstag' && a.datum && (() => {
+        const orig = parseDate(a.datum);
+        return orig.getMonth() === b.getMonth() && orig.getDate() === b.getDate();
+      })());
+
+      if (bdayStr === dStr && !hasMatchingAnlass) {
+        items.push({ type: 'birthday', kontakt: k, dayOffset: i });
       }
-      const bdayDate = new Date(d.getFullYear(), b.getMonth(), b.getDate());
-      const vorlaufDate = addDays(bdayDate, -settings.bday_vorlauf);
-      if (isoDate(vorlaufDate) === dStr && isoDate(bdayDate) !== dStr) {
-        const hasAnlass = anlaesse.some(a => a.typ === 'geburtstag');
-        if (!hasAnlass) {
-          items.push({ type: 'bday-vorlauf', kontakt: k, daysUntil: settings.bday_vorlauf });
-        }
+
+      const vorlaufDate = addDays(upcomingBday, -settings.bday_vorlauf);
+      if (isoDate(vorlaufDate) === dStr && bdayStr !== dStr && !hasMatchingAnlass) {
+        items.push({ type: 'bday-vorlauf', kontakt: k, daysUntil: settings.bday_vorlauf });
       }
     });
 
@@ -1182,13 +1181,15 @@ function renderHeute(container) {
         </div>`;
       } else if (item.type === 'birthday') {
         const k = item.kontakt;
+        const offset = item.dayOffset || 0;
+        const rightLabel = offset === 0 ? 'heute' : (offset === 1 ? 'morgen' : 'in ' + offset + 'T');
         html += `<div class="card ok" onclick="openPersonDetail(${k.id})">
           <div class="avatar ${avClass(k.level)}">${initials(k.name)}</div>
           <div class="card-info">
             <div class="card-name">${esc(k.name)}</div>
             <div class="card-meta">Geburtstag</div>
           </div>
-          <div class="card-right"><div class="card-days ok">heute</div></div>
+          <div class="card-right"><div class="card-days ok">${rightLabel}</div></div>
         </div>`;
       } else if (item.type === 'bday-vorlauf') {
         const k = item.kontakt;
@@ -1217,8 +1218,8 @@ function renderHeute(container) {
     .slice(0, 3);
 
   if (contactable.length && !overdue.length) {
-    html += '<div class="section-label" style="padding-left:20px">Heute möglich</div>';
-    html += '<div class="section"><div class="cards">';
+    html += '<div class="section-label">Heute möglich</div>';
+    html += '<div class="cards">';
     contactable.forEach(k => {
       const ds = daysSince(k.last_contact);
       html += `<div class="card soon" onclick="openPersonDetail(${k.id})">
@@ -1230,7 +1231,7 @@ function renderHeute(container) {
         <div class="card-right"><div class="card-days soon">${formatDaysAgo(ds)}</div></div>
       </div>`;
     });
-    html += '</div></div>';
+    html += '</div>';
   }
 
   if (!hasAnyDay && !overdue.length && !contactable.length) {
@@ -1568,7 +1569,7 @@ function openPersonDetail(id) {
       <div class="info-row"><span class="info-key">Vor</span><span class="info-val" style="color:${urgColor}">${formatDaysAgo(ds)}</span></div>
       <div class="info-row"><span class="info-key">Ziel</span><span class="info-val">${freqLabel}</span></div>
       <div class="info-row"><span class="info-key">Geburtstag</span><span class="info-val">${k.bday ? formatDateShort(k.bday) + (bday !== null ? ' (in ' + bday + 'T)' : '') : '--'}</span></div>
-      ${k.note ? `<div class="info-row"><span class="info-key">Notiz</span><span class="info-val" style="font-family:var(--sans);font-size:13px">${esc(k.note)}</span></div>` : ''}
+      ${k.note ? `<div class="info-row" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="info-key">Notiz</span><span class="info-val" style="font-family:var(--sans);font-size:13px;max-width:100%;white-space:pre-wrap;line-height:1.5;text-align:left">${esc(k.note)}</span></div>` : ''}
     </div>
 
     <div class="section-label">Aktionen</div>

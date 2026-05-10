@@ -1,4 +1,4 @@
-const CACHE = 'intouch-v4';
+const CACHE = 'intouch-v5';
 const FILES = [
   '/kontakte-app/',
   '/kontakte-app/index.html',
