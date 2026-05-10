@@ -7,11 +7,15 @@ import { BottomSheet } from '../components/BottomSheet';
 import { useStore } from '../store/store';
 import { haptic } from '../hooks/useHaptic';
 import {
+  addDays,
+  DAY_SHORT_NAMES,
   daysSince,
   daysUntilBday,
   formatDateGerman,
   formatDateShort,
   formatDaysAgoLong,
+  isoDate,
+  MONTH_SHORT_NAMES,
   upcomingFromAnlass,
   daysBetween,
   todayDate,
@@ -21,6 +25,35 @@ import { LEVELS, levelLabel, levelLabelLong, threshold, urgency } from '../lib/d
 import { toast } from '../lib/toast';
 import type { Level } from '../types';
 import type { Overlay } from '../App';
+
+function recentDays(): { iso: string; label: string; dateLabel: string }[] {
+  const today = todayDate();
+  const out: { iso: string; label: string; dateLabel: string }[] = [];
+  const NAMED_LABELS: Record<number, string> = {
+    0: 'heute',
+    1: 'gestern',
+    2: 'vorgestern',
+  };
+  const WEEKDAYS_LONG = [
+    'Sonntag',
+    'Montag',
+    'Dienstag',
+    'Mittwoch',
+    'Donnerstag',
+    'Freitag',
+    'Samstag',
+  ];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, -i);
+    const iso = isoDate(d)!;
+    const label = NAMED_LABELS[i] ?? WEEKDAYS_LONG[d.getDay()].toLowerCase();
+    const dateLabel = `${DAY_SHORT_NAMES[d.getDay()]} · ${d.getDate()}. ${
+      MONTH_SHORT_NAMES[d.getMonth()]
+    }`;
+    out.push({ iso, label, dateLabel });
+  }
+  return out;
+}
 
 interface Props {
   id: number;
@@ -35,7 +68,6 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
   const aktionen = useStore(s => s.aktionen);
   const anlaesse = useStore(s => s.anlaesse);
   const settings = useStore(s => s.settings);
-  const markContacted = useStore(s => s.markContacted);
   const updatePerson = useStore(s => s.updatePerson);
   const deletePerson = useStore(s => s.deletePerson);
   const toggleAktion = useStore(s => s.toggleAktion);
@@ -258,16 +290,26 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <div className="gap lg" />
 
-        <PrimaryButton
-          onClick={() => {
-            haptic('success');
-            markContacted(k.id);
-            toast(`gemeldet — ${k.name}`);
-            onClose();
-          }}
-        >
-          Heute gemeldet
-        </PrimaryButton>
+        <Lbl>gemeldet</Lbl>
+        <List>
+          {recentDays().map(d => (
+            <Row
+              key={d.iso}
+              className="tappable"
+              onClick={async () => {
+                haptic('success');
+                await updatePerson(k.id, { last_contact: d.iso });
+                toast(`gemeldet · ${d.label}`);
+                onClose();
+              }}
+            >
+              <Name>{d.label}</Name>
+              <Meta>{d.dateLabel}</Meta>
+            </Row>
+          ))}
+        </List>
+
+        <div className="gap" />
 
         <GhostButton onClick={() => openOverlay({ kind: 'note-form', personId: k.id })}>
           + Notiz hinzufügen
