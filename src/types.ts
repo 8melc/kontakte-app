@@ -24,7 +24,7 @@ export interface Anlass {
 
 export interface Aktion {
   id: number;
-  anlass_id: number;
+  anlass_id: number | null;
   kontakt_id: number;
   was: string;
   vorlauf_tage: number;

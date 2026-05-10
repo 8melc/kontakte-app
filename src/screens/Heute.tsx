@@ -157,6 +157,7 @@ function HeuteListe({ openOverlay }: Props) {
   const settings = useStore(s => s.settings);
   const loaded = useStore(s => s.loaded);
   const markContacted = useStore(s => s.markContacted);
+  const toggleAktion = useStore(s => s.toggleAktion);
 
   const [menu, setMenu] = useState<{ x: number; y: number; person: Kontakt } | null>(null);
 
@@ -190,6 +191,12 @@ function HeuteListe({ openOverlay }: Props) {
     [kontakte, settings, overdue]
   );
 
+  const meldungen = useMemo(() => {
+    return aktionen
+      .filter(a => !a.erledigt && a.anlass_id == null)
+      .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+  }, [aktionen]);
+
   if (!loaded) return <SkeletonList rows={6} />;
 
   const onPersonTap = (k: Kontakt) => openOverlay({ kind: 'person-detail', id: k.id });
@@ -208,6 +215,75 @@ function HeuteListe({ openOverlay }: Props) {
 
   return (
     <div className="fade-in">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          paddingBottom: 8,
+        }}
+      >
+        <Lbl>will mich melden</Lbl>
+        <button
+          onClick={() => {
+            haptic('tap');
+            openOverlay({ kind: 'meldung-form' });
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            color: 'var(--text-2)',
+          }}
+        >
+          + neu
+        </button>
+      </div>
+      {meldungen.length === 0 ? (
+        <div
+          className="empty"
+          style={{
+            cursor: 'pointer',
+            padding: '14px 0',
+          }}
+          onClick={() => {
+            haptic('tap');
+            openOverlay({ kind: 'meldung-form' });
+          }}
+        >
+          tippen → erste todo eintragen
+        </div>
+      ) : (
+        <List>
+          {meldungen.map(ak => {
+            const k = kontakte.find(x => x.id === ak.kontakt_id);
+            return (
+              <Row
+                key={ak.id}
+                className="tappable"
+                onClick={async () => {
+                  haptic('success');
+                  await toggleAktion(ak.id);
+                  if (k) {
+                    await markContacted(k.id);
+                    toast(`erledigt · ${k.name}`);
+                  } else {
+                    toast('erledigt');
+                  }
+                }}
+              >
+                <Name sub={k ? k.name : '—'}>{ak.was}</Name>
+                <Meta>○</Meta>
+              </Row>
+            );
+          })}
+        </List>
+      )}
+      <div className="gap" />
+
       {overdue.length > 0 && (
         <>
           <Lbl>überfällig</Lbl>

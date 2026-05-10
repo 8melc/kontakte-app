@@ -43,13 +43,12 @@ export function SwipeRow({
     if (locked.current == null) {
       if (Math.abs(ddx) > 8 || Math.abs(ddy) > 8) {
         locked.current = Math.abs(ddx) > Math.abs(ddy) ? 'h' : 'v';
-        if (locked.current === 'h') {
-          (e.target as Element).setPointerCapture?.(e.pointerId);
-        }
+        // NOTE: deliberately not calling setPointerCapture here. It would
+        // re-target pointerup to the SwipeRow itself and prevent the inner
+        // Row's onClick from firing — i.e. taps would silently fail.
       }
     }
     if (locked.current === 'h') {
-      e.preventDefault();
       const clamped = Math.max(-160, Math.min(160, ddx));
       setDx(clamped);
       // Pre-trigger haptic at threshold cross
