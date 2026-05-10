@@ -1,20 +1,20 @@
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 export function List({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`list ${className}`}>{children}</div>;
 }
 
-interface RowProps {
+interface RowProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
   dim?: boolean;
   onClick?: () => void;
   className?: string;
 }
 
-export function Row({ children, dim, onClick, className = '' }: RowProps) {
+export function Row({ children, dim, onClick, className = '', ...rest }: RowProps) {
   const cls = ['row', dim ? 'dim' : '', onClick ? 'tappable' : '', className].filter(Boolean).join(' ');
   return (
-    <div className={cls} onClick={onClick}>
+    <div className={cls} onClick={onClick} {...rest}>
       {children}
     </div>
   );

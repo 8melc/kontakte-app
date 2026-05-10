@@ -12,6 +12,8 @@ import { PersonForm } from './screens/PersonForm';
 import { AnlassForm } from './screens/AnlassForm';
 import { AktionForm } from './screens/AktionForm';
 import { NoteForm } from './screens/NoteForm';
+import { MeldungForm } from './screens/MeldungForm';
+import { Statistik } from './screens/Statistik';
 import { QuickAdd } from './screens/QuickAdd';
 import { useStore } from './store/store';
 import { usePersistedState } from './hooks/usePersistedState';
@@ -30,6 +32,8 @@ export type Overlay =
   | { kind: 'anlass-form'; id: number | null }
   | { kind: 'aktion-form'; anlassId: number }
   | { kind: 'note-form'; personId: number }
+  | { kind: 'meldung-form' }
+  | { kind: 'statistik' }
   | { kind: 'quick-add' };
 
 export default function App() {
@@ -101,6 +105,8 @@ export default function App() {
       {overlay.kind === 'note-form' && (
         <NoteForm personId={overlay.personId} onClose={close} />
       )}
+      {overlay.kind === 'meldung-form' && <MeldungForm onClose={close} />}
+      {overlay.kind === 'statistik' && <Statistik onClose={close} />}
       <QuickAdd
         open={overlay.kind === 'quick-add'}
         onClose={close}

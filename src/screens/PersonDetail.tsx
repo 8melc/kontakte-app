@@ -7,11 +7,15 @@ import { BottomSheet } from '../components/BottomSheet';
 import { useStore } from '../store/store';
 import { haptic } from '../hooks/useHaptic';
 import {
+  addDays,
+  DAY_SHORT_NAMES,
   daysSince,
   daysUntilBday,
   formatDateGerman,
   formatDateShort,
   formatDaysAgoLong,
+  isoDate,
+  MONTH_SHORT_NAMES,
   upcomingFromAnlass,
   daysBetween,
   todayDate,
@@ -21,6 +25,35 @@ import { LEVELS, levelLabel, levelLabelLong, threshold, urgency } from '../lib/d
 import { toast } from '../lib/toast';
 import type { Level } from '../types';
 import type { Overlay } from '../App';
+
+function recentDays(): { iso: string; label: string; dateLabel: string }[] {
+  const today = todayDate();
+  const out: { iso: string; label: string; dateLabel: string }[] = [];
+  const NAMED_LABELS: Record<number, string> = {
+    0: 'heute',
+    1: 'gestern',
+    2: 'vorgestern',
+  };
+  const WEEKDAYS_LONG = [
+    'Sonntag',
+    'Montag',
+    'Dienstag',
+    'Mittwoch',
+    'Donnerstag',
+    'Freitag',
+    'Samstag',
+  ];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, -i);
+    const iso = isoDate(d)!;
+    const label = NAMED_LABELS[i] ?? WEEKDAYS_LONG[d.getDay()].toLowerCase();
+    const dateLabel = `${DAY_SHORT_NAMES[d.getDay()]} · ${d.getDate()}. ${
+      MONTH_SHORT_NAMES[d.getMonth()]
+    }`;
+    out.push({ iso, label, dateLabel });
+  }
+  return out;
+}
 
 interface Props {
   id: number;
@@ -35,7 +68,6 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
   const aktionen = useStore(s => s.aktionen);
   const anlaesse = useStore(s => s.anlaesse);
   const settings = useStore(s => s.settings);
-  const markContacted = useStore(s => s.markContacted);
   const updatePerson = useStore(s => s.updatePerson);
   const deletePerson = useStore(s => s.deletePerson);
   const toggleAktion = useStore(s => s.toggleAktion);
@@ -105,7 +137,51 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
   return (
     <div className="full">
       <div className="full-inner">
-        <BackButton onClick={onClose} />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 16,
+          }}
+        >
+          <button
+            onClick={() => {
+              haptic('tap');
+              onClose();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 4,
+              cursor: 'pointer',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              color: 'var(--text-2)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            ‹ zurück
+          </button>
+          <button
+            onClick={() => {
+              haptic('soft');
+              setConfirming(true);
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 4,
+              cursor: 'pointer',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              color: 'var(--text-3)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            löschen
+          </button>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
           <Avatar name={k.name} size="lg" urgent={u === 'urgent'} />
           <div>
@@ -239,17 +315,6 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <div className="gap lg" />
 
-        <PrimaryButton
-          onClick={() => {
-            haptic('success');
-            markContacted(k.id);
-            toast(`gemeldet — ${k.name}`);
-            onClose();
-          }}
-        >
-          Heute gemeldet
-        </PrimaryButton>
-
         <GhostButton onClick={() => openOverlay({ kind: 'note-form', personId: k.id })}>
           + Notiz hinzufügen
         </GhostButton>
@@ -264,16 +329,17 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <div className="gap" />
 
-        {!confirming ? (
-          <button
-            className="btn-ghost"
-            style={{ color: 'var(--red)', textAlign: 'center' }}
-            onClick={() => setConfirming(true)}
+        {confirming && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: '14px 0',
+              borderTop: '1px solid var(--hair)',
+              borderBottom: '1px solid var(--hair)',
+              marginBottom: 8,
+            }}
           >
-            Person löschen
-          </button>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, paddingTop: 14, borderTop: '1px solid var(--hair)' }}>
             <button
               className="btn-ghost"
               style={{ flex: 1, textAlign: 'center', borderTop: 'none' }}
@@ -285,6 +351,7 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
               className="btn-ghost"
               style={{ flex: 1, color: 'var(--red)', textAlign: 'center', borderTop: 'none' }}
               onClick={async () => {
+                haptic('warn');
                 await deletePerson(k.id);
                 toast('gelöscht');
                 onClose();
@@ -294,16 +361,27 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
             </button>
           </div>
         )}
+
+        <button
+          className="btn-ghost"
+          style={{ textAlign: 'center' }}
+          onClick={() => {
+            haptic('tap');
+            onClose();
+          }}
+        >
+          ‹ zurück
+        </button>
       </div>
 
       {/* ─── Inline-Edit Sheets ─── */}
       <BottomSheet
         open={editing === 'last_contact'}
         onClose={() => setEditing(null)}
-        title="Letzter Kontakt"
+        title="Gemeldet"
         subtitle="wann war's?"
       >
-        <DateEditor
+        <LastContactEditor
           initial={k.last_contact}
           onSave={async (val) => {
             await updatePerson(k.id, { last_contact: val });
@@ -355,6 +433,78 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
           allowToday={false}
         />
       </BottomSheet>
+    </div>
+  );
+}
+
+function LastContactEditor({
+  initial,
+  onSave,
+  onClear,
+}: {
+  initial: string | null;
+  onSave: (val: string) => Promise<void>;
+  onClear?: () => Promise<void>;
+}) {
+  const [customDate, setCustomDate] = useState('');
+  const days = useMemo(() => recentDays(), []);
+
+  return (
+    <div>
+      <List>
+        {days.map(d => {
+          const isCurrent = initial === d.iso;
+          return (
+            <Row
+              key={d.iso}
+              className="tappable"
+              onClick={async () => {
+                haptic('success');
+                await onSave(d.iso);
+              }}
+            >
+              <Name>{d.label}</Name>
+              <Meta tone={isCurrent ? 'g' : undefined}>
+                {isCurrent ? '✓ ' : ''}
+                {d.dateLabel}
+              </Meta>
+            </Row>
+          );
+        })}
+      </List>
+
+      <div className="gap" />
+      <Lbl>oder ein anderes datum</Lbl>
+      <input
+        className="input mono"
+        type="date"
+        value={customDate}
+        onChange={e => setCustomDate(e.target.value)}
+        style={{ marginTop: 10 }}
+      />
+      <div className="gap" />
+      <PrimaryButton
+        onClick={() => {
+          if (customDate) {
+            haptic('success');
+            onSave(customDate);
+          }
+        }}
+      >
+        Speichern
+      </PrimaryButton>
+      {onClear && initial && (
+        <button
+          className="btn-ghost"
+          style={{ color: 'var(--text-3)', textAlign: 'center' }}
+          onClick={() => {
+            haptic('soft');
+            onClear();
+          }}
+        >
+          zurücksetzen
+        </button>
+      )}
     </div>
   );
 }

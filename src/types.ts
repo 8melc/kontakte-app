@@ -24,7 +24,7 @@ export interface Anlass {
 
 export interface Aktion {
   id: number;
-  anlass_id: number;
+  anlass_id: number | null;
   kontakt_id: number;
   was: string;
   vorlauf_tage: number;
@@ -35,6 +35,18 @@ export interface Aktion {
 export type Urgency = 'urgent' | 'soon' | 'ok' | 'neutral';
 
 export type Tab = 'heute' | 'personen' | 'anlaesse' | 'mehr';
+
+export type EventSource = 'detail' | 'swipe' | 'quickadd' | 'meldung' | 'manual' | 'backfill';
+export type EventKind = 'gemeldet' | 'gedacht';
+
+export interface KontaktEvent {
+  id: number;
+  kontakt_id: number;
+  ts: string;
+  source: EventSource | string | null;
+  kind: EventKind | string;
+  created_at: string;
+}
 
 export interface Settings {
   freq_inner: number;

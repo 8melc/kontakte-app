@@ -43,12 +43,23 @@ anlaesse (
 -- Aufgaben, die zu einem Anlass gehören (z.B. "Geschenk für Oma besorgen")
 aktionen (
   id           bigserial PRIMARY KEY,
-  anlass_id    bigint REFERENCES anlaesse(id),
+  anlass_id    bigint REFERENCES anlaesse(id),  -- NULL = freistehende "will mich melden"-Todo
   kontakt_id   bigint REFERENCES kontakte(id),
   was          text NOT NULL,       -- die Aufgabe selbst
   vorlauf_tage int DEFAULT 0,       -- Tage VOR dem Anlass, dass es angezeigt wird
   erledigt     boolean DEFAULT false,
   created_at   timestamptz DEFAULT now()
+)
+
+-- Event-Log: jede einzelne "gemeldet"-Aktion mit Timestamp.
+-- Wird von der Statistik-Page für Streaks + Trends genutzt.
+kontakt_events (
+  id          bigserial PRIMARY KEY,
+  kontakt_id  bigint REFERENCES kontakte(id),
+  ts          timestamptz DEFAULT now(),
+  source      text,                  -- 'detail'|'swipe'|'quickadd'|'meldung'|'manual'|'sql'
+  kind        text DEFAULT 'gemeldet',  -- 'gemeldet'|'gedacht'
+  created_at  timestamptz DEFAULT now()
 )
 ```
 
@@ -88,18 +99,39 @@ Niemals `SET note = '...'` ohne `COALESCE`.
 ### Mark-Contacted (häufigster Fall)
 "Ich hab heute Jonas getroffen" oder "mit Mira telefoniert" oder "Anruf bei Lou":
 
+**Wichtig:** seit der Statistik-Page-Migration musst du JEDEN mark-contacted-Eintrag **doppelt** schreiben — einmal `UPDATE kontakte.last_contact` und einmal `INSERT INTO kontakt_events`. Sonst fehlen die Streaks und Trends.
+
 ```sql
 UPDATE kontakte
 SET last_contact = CURRENT_DATE
 WHERE name ILIKE '%jonas%';
+
+INSERT INTO kontakt_events (kontakt_id, ts, source, kind)
+SELECT id, now(), 'sql', 'gemeldet'
+FROM kontakte WHERE name ILIKE '%jonas%';
 ```
 
-Wenn zusätzlich was inhaltliches gesagt wurde, **kombiniere** in einem UPDATE:
+Wenn zusätzlich was inhaltliches gesagt wurde, **kombiniere**:
 ```sql
 UPDATE kontakte
 SET last_contact = CURRENT_DATE,
     note = COALESCE(note || E'\n', '') || '2026-05-10: Kaffee bei Bonanza, war gut.'
 WHERE name ILIKE '%jonas%';
+
+INSERT INTO kontakt_events (kontakt_id, ts, source, kind)
+SELECT id, now(), 'sql', 'gemeldet'
+FROM kontakte WHERE name ILIKE '%jonas%';
+```
+
+Für **vergangene** Daten (z.B. "letzten Sonntag mit Papa telefoniert"):
+```sql
+UPDATE kontakte
+SET last_contact = CURRENT_DATE - INTERVAL '3 days'
+WHERE name ILIKE '%papa%';
+
+INSERT INTO kontakt_events (kontakt_id, ts, source, kind)
+SELECT id, (CURRENT_DATE - INTERVAL '3 days')::timestamptz + INTERVAL '12 hours', 'sql', 'gemeldet'
+FROM kontakte WHERE name ILIKE '%papa%';
 ```
 
 ### Neue Person
