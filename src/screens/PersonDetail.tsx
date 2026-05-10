@@ -137,7 +137,32 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
   return (
     <div className="full">
       <div className="full-inner">
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 16,
+          }}
+        >
+          <button
+            onClick={() => {
+              haptic('tap');
+              onClose();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 4,
+              cursor: 'pointer',
+              fontFamily: 'var(--mono)',
+              fontSize: 11,
+              color: 'var(--text-2)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            ‹ zurück
+          </button>
           <button
             onClick={() => {
               haptic('soft');
@@ -290,27 +315,6 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
 
         <div className="gap lg" />
 
-        <Lbl>gemeldet</Lbl>
-        <List>
-          {recentDays().map(d => (
-            <Row
-              key={d.iso}
-              className="tappable"
-              onClick={async () => {
-                haptic('success');
-                await updatePerson(k.id, { last_contact: d.iso });
-                toast(`gemeldet · ${d.label}`);
-                onClose();
-              }}
-            >
-              <Name>{d.label}</Name>
-              <Meta>{d.dateLabel}</Meta>
-            </Row>
-          ))}
-        </List>
-
-        <div className="gap" />
-
         <GhostButton onClick={() => openOverlay({ kind: 'note-form', personId: k.id })}>
           + Notiz hinzufügen
         </GhostButton>
@@ -374,10 +378,10 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
       <BottomSheet
         open={editing === 'last_contact'}
         onClose={() => setEditing(null)}
-        title="Letzter Kontakt"
+        title="Gemeldet"
         subtitle="wann war's?"
       >
-        <DateEditor
+        <LastContactEditor
           initial={k.last_contact}
           onSave={async (val) => {
             await updatePerson(k.id, { last_contact: val });
@@ -429,6 +433,78 @@ export function PersonDetail({ id, onClose, openOverlay }: Props) {
           allowToday={false}
         />
       </BottomSheet>
+    </div>
+  );
+}
+
+function LastContactEditor({
+  initial,
+  onSave,
+  onClear,
+}: {
+  initial: string | null;
+  onSave: (val: string) => Promise<void>;
+  onClear?: () => Promise<void>;
+}) {
+  const [customDate, setCustomDate] = useState('');
+  const days = useMemo(() => recentDays(), []);
+
+  return (
+    <div>
+      <List>
+        {days.map(d => {
+          const isCurrent = initial === d.iso;
+          return (
+            <Row
+              key={d.iso}
+              className="tappable"
+              onClick={async () => {
+                haptic('success');
+                await onSave(d.iso);
+              }}
+            >
+              <Name>{d.label}</Name>
+              <Meta tone={isCurrent ? 'g' : undefined}>
+                {isCurrent ? '✓ ' : ''}
+                {d.dateLabel}
+              </Meta>
+            </Row>
+          );
+        })}
+      </List>
+
+      <div className="gap" />
+      <Lbl>oder ein anderes datum</Lbl>
+      <input
+        className="input mono"
+        type="date"
+        value={customDate}
+        onChange={e => setCustomDate(e.target.value)}
+        style={{ marginTop: 10 }}
+      />
+      <div className="gap" />
+      <PrimaryButton
+        onClick={() => {
+          if (customDate) {
+            haptic('success');
+            onSave(customDate);
+          }
+        }}
+      >
+        Speichern
+      </PrimaryButton>
+      {onClear && initial && (
+        <button
+          className="btn-ghost"
+          style={{ color: 'var(--text-3)', textAlign: 'center' }}
+          onClick={() => {
+            haptic('soft');
+            onClear();
+          }}
+        >
+          zurücksetzen
+        </button>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { BottomSheet } from '../components/BottomSheet';
 import { List, Row, Name, Meta, Dot } from '../components/List';
 import { Lbl } from '../components/Lbl';
+import { PrimaryButton } from '../components/Buttons';
 import { useStore } from '../store/store';
 import { haptic } from '../hooks/useHaptic';
 import { daysSince, formatDaysAgo } from '../lib/date';
@@ -125,6 +126,7 @@ function PersonPicker({
   const settings = useStore(s => s.settings);
   const markContacted = useStore(s => s.markContacted);
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const overdue = useMemo(
     () =>
@@ -153,10 +155,29 @@ function PersonPicker({
 
   const verb = mode === 'gemeldet' ? 'gemeldet' : 'dran gedacht';
 
-  const pick = (k: Kontakt) => {
+  const toggle = (k: Kontakt) => {
+    haptic('tap');
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(k.id)) next.delete(k.id);
+      else next.add(k.id);
+      return next;
+    });
+  };
+
+  const commit = async () => {
+    if (selected.size === 0) return;
     haptic('success');
-    markContacted(k.id);
-    toast(`${verb} — ${k.name}`);
+    const ids = Array.from(selected);
+    const names = ids
+      .map(id => kontakte.find(k => k.id === id)?.name)
+      .filter(Boolean) as string[];
+    await Promise.all(ids.map(id => markContacted(id)));
+    if (ids.length === 1) {
+      toast(`${verb} — ${names[0]}`);
+    } else {
+      toast(`${verb} — ${ids.length} personen`);
+    }
     onClose();
   };
 
@@ -175,21 +196,21 @@ function PersonPicker({
         filtered.length === 0 ? (
           <div className="empty">niemand gefunden.</div>
         ) : (
-          <PickList list={filtered} onPick={pick} settings={settings} />
+          <PickList list={filtered} selected={selected} onToggle={toggle} settings={settings} />
         )
       ) : (
         <>
           {overdue.length > 0 && (
             <>
               <Lbl tone="r">überfällig</Lbl>
-              <PickList list={overdue} onPick={pick} settings={settings} />
+              <PickList list={overdue} selected={selected} onToggle={toggle} settings={settings} />
               <div className="gap" />
             </>
           )}
           {inner.length > 0 && (
             <>
               <Lbl>inner circle</Lbl>
-              <PickList list={inner} onPick={pick} settings={settings} />
+              <PickList list={inner} selected={selected} onToggle={toggle} settings={settings} />
             </>
           )}
           {overdue.length === 0 && inner.length === 0 && (
@@ -199,6 +220,20 @@ function PersonPicker({
       )}
 
       <div className="gap" />
+
+      {selected.size > 0 ? (
+        <PrimaryButton onClick={commit}>
+          {verb} {selected.size === 1 ? '· 1 person' : `· ${selected.size} personen`}
+        </PrimaryButton>
+      ) : (
+        <div
+          className="scr-sub"
+          style={{ textAlign: 'center', padding: '12px 0', fontSize: 11 }}
+        >
+          tippen zum auswählen · mehrfach möglich
+        </div>
+      )}
+
       <button className="btn-ghost center" onClick={onBack}>
         ‹ zurück
       </button>
@@ -208,11 +243,13 @@ function PersonPicker({
 
 function PickList({
   list,
-  onPick,
+  selected,
+  onToggle,
   settings,
 }: {
   list: Kontakt[];
-  onPick: (k: Kontakt) => void;
+  selected: Set<number>;
+  onToggle: (k: Kontakt) => void;
   settings: { freq_inner: number; freq_close: number; freq_mid: number; freq_loose: number };
 }) {
   return (
@@ -220,14 +257,19 @@ function PickList({
       {list.map(k => {
         const u = urgency(k, settings as Parameters<typeof urgency>[1]);
         const ds = daysSince(k.last_contact);
+        const isSelected = selected.has(k.id);
         return (
-          <Row key={k.id} className="tappable" onClick={() => onPick(k)}>
+          <Row key={k.id} className="tappable" onClick={() => onToggle(k)}>
             {u === 'urgent' && <Dot tone="r" />}
             {u === 'soon' && <Dot tone="a" />}
             <Name sub={levelLabelLong(k.level)}>{k.name}</Name>
-            <Meta tone={u === 'urgent' ? 'r' : u === 'soon' ? 'a' : undefined}>
-              {formatDaysAgo(ds)}
-            </Meta>
+            {isSelected ? (
+              <Meta tone="g">✓</Meta>
+            ) : (
+              <Meta tone={u === 'urgent' ? 'r' : u === 'soon' ? 'a' : undefined}>
+                {formatDaysAgo(ds)}
+              </Meta>
+            )}
           </Row>
         );
       })}
