@@ -1,0 +1,23 @@
+{
+  "name": "InTouch",
+  "short_name": "InTouch",
+  "start_url": "/kontakte-app/",
+  "scope": "/kontakte-app/",
+  "display": "standalone",
+  "background_color": "#14120f",
+  "theme_color": "#14120f",
+  "description": "Dein externes Gehirn für Beziehungen",
+  "icons": [
+    {
+      "src": "icon-arcs.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f0f0f"/>
+  <!-- Concentric arcs representing connection circles -->
+  <circle cx="256" cy="280" r="160" fill="none" stroke="#2a2a2a" stroke-width="1.5"/>
+  <circle cx="256" cy="280" r="110" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <circle cx="256" cy="280" r="60" fill="none" stroke="#555550" stroke-width="1.5"/>
+  <!-- Inner circle dot — you -->
+  <circle cx="256" cy="280" r="8" fill="#e05a4e"/>
+  <!-- Connection dots on rings -->
+  <circle cx="196" cy="280" r="5" fill="#f0ede8"/>
+  <circle cx="316" cy="280" r="5" fill="#f0ede8"/>
+  <circle cx="256" cy="170" r="4" fill="#888880"/>
+  <circle cx="340" cy="200" r="4" fill="#888880"/>
+  <circle cx="172" cy="200" r="4" fill="#888880"/>
+  <circle cx="380" cy="310" r="3.5" fill="#555550"/>
+  <circle cx="132" cy="310" r="3.5" fill="#555550"/>
+  <circle cx="256" cy="440" r="3.5" fill="#555550"/>
+  <!-- App name -->
+  <text x="256" y="110" text-anchor="middle" fill="#f0ede8" font-family="DM Sans, sans-serif" font-size="56" font-weight="600" letter-spacing="-1">dran</text>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="108" fill="#0f0f0f"/>
+
+  <!-- Subtle border -->
+  <rect x="4" y="4" width="504" height="504" rx="106" fill="none" stroke="#2a2a2a" stroke-width="2"/>
+
+  <!-- Three connected arcs representing relationships at different levels -->
+  <!-- Inner arc (eng) -->
+  <path d="M 196 320 Q 256 220 316 320" fill="none" stroke="#f0ede8" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Middle arc (mittel) -->
+  <path d="M 160 320 Q 256 180 352 320" fill="none" stroke="#888880" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Outer arc (locker) -->
+  <path d="M 128 320 Q 256 144 384 320" fill="none" stroke="#555550" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Center dot - you -->
+  <circle cx="256" cy="332" r="8" fill="#f0ede8"/>
+
+  <!-- Small accent dot (today/action) -->
+  <circle cx="256" cy="192" r="5" fill="#e05a4e"/>
+</svg>
