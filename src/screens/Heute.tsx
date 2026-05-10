@@ -284,26 +284,6 @@ function HeuteListe({ openOverlay }: Props) {
       )}
       <div className="gap" />
 
-      {overdue.length > 0 && (
-        <>
-          <Lbl>überfällig</Lbl>
-          <List>
-            {overdue.map(k => (
-              <PersonRow
-                key={k.id}
-                k={k}
-                settings={settings}
-                onTap={() => onPersonTap(k)}
-                onSwipeRight={() => onPersonSwipeR(k)}
-                onSwipeLeft={() => onPersonSwipeL(k)}
-                onLongPress={e => onPersonLong(k, e)}
-              />
-            ))}
-          </List>
-          <div className="gap" />
-        </>
-      )}
-
       {todayBucket && (
         <>
           <Lbl>heute</Lbl>
@@ -337,6 +317,26 @@ function HeuteListe({ openOverlay }: Props) {
                 );
               })
             )}
+          </List>
+          <div className="gap" />
+        </>
+      )}
+
+      {overdue.length > 0 && (
+        <>
+          <Lbl>überfällig</Lbl>
+          <List>
+            {overdue.map(k => (
+              <PersonRow
+                key={k.id}
+                k={k}
+                settings={settings}
+                onTap={() => onPersonTap(k)}
+                onSwipeRight={() => onPersonSwipeR(k)}
+                onSwipeLeft={() => onPersonSwipeL(k)}
+                onLongPress={e => onPersonLong(k, e)}
+              />
+            ))}
           </List>
           <div className="gap" />
         </>
